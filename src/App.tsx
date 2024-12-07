@@ -29,7 +29,9 @@ const selectNodeState = (state: NodeState) => ({
   nodes: state.nodes,
   edges: state.edges,
   onNodesChange: state.onNodesChange,
+  onNodeDoubleClick: state.onNodeDoubleClick,
   onEdgesChange: state.onEdgesChange,
+  onEdgeDoubleClick: state.onEdgeDoubleClick,
   onConnect: state.onConnect,
   addNode: state.addNode,
   getParam: state.getParam,
@@ -49,7 +51,7 @@ const connectionLineStyle = { strokeWidth: 3, strokeDasharray: '8,8' };
 const defaultEdgeOptions = { style: { ...connectionLineStyle, strokeDasharray: 'none' } };
 
 export default function App() {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, getParam } = useNodeState(selectNodeState, shallow);
+  const { nodes, edges, onNodesChange, onNodeDoubleClick, onEdgesChange, onEdgeDoubleClick, onConnect, addNode, getParam } = useNodeState(selectNodeState, shallow);
   const { nodeRegistry, updateNodeRegistry } = useNodeRegistryState(selectNodeRegistryState, shallow);
   const { connect: connectWebsocket } = useWebsocketState(selectWebsocketState, shallow);
   const { screenToFlowPosition } = useReactFlow();
@@ -110,7 +112,9 @@ export default function App() {
       edges={edges}
       nodeTypes={nodeTypes}
       onNodesChange={onNodesChange}
+      onNodeDoubleClick={(event, node) => onNodeDoubleClick(node.id)}
       onEdgesChange={onEdgesChange}
+      onEdgeDoubleClick={(event, node) => onEdgeDoubleClick(node.id)}
       isValidConnection={isValidConnection as IsValidConnection}
       onConnect={onConnect}
       nodeOrigin={nodeOrigin}
