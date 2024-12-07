@@ -123,6 +123,7 @@ export default function App() {
       maxZoom={1.2}
       //fitView
       proOptions={{hideAttribution: true}}
+      deleteKeyCode={['Backspace', 'Delete']}      
     >
       {/* <Controls position="bottom-right" /> */}
       <Background variant={BackgroundVariant.Dots} gap={16} size={1} color="rgba(255, 255, 255, 0.3)" />
