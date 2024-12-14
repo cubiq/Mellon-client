@@ -138,6 +138,7 @@ export type NodeState = {
     edges: Edge[];
     onNodesChange: OnNodesChange<CustomNodeType>;
     onEdgesChange: OnEdgesChange;
+    onEdgeDoubleClick: (id: string) => void;
     onConnect: OnConnect;
     addNode: (node: CustomNodeType) => void;
     setParamValue: (id: string, key: string, value: any) => void;
@@ -170,6 +171,10 @@ export const useNodeState = createWithEqualityFn<NodeState>((set, get) => ({
     },
     onEdgesChange: (changes: EdgeChange<Edge>[]) => {
         set({ edges: applyEdgeChanges(changes, get().edges) });
+    },
+    onEdgeDoubleClick: (id: string) => {
+      const updatedEdges = get().edges.filter((edge) => edge.id !== id);
+      set({ edges: updatedEdges });
     },
     onConnect: (conn: Connection) => {
         const updatedEdges = get().edges.filter(
