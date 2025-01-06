@@ -11,6 +11,13 @@ import { WebSocketProvider } from './components/WebsocketContext';
 
 const themeOptions = createTheme({
   components: {
+    MuiAccordionSummary: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'JetBrains Mono',
+        },
+      },
+    },
   },
   palette: {
     mode: 'dark',

@@ -34,9 +34,9 @@ function base64ToBlob(base64, contentType = "", sliceSize = 512) {
 
 export default function ThreePreview({ nodeId, dataKey, width = 512, height = 512, ...props }) {
     const [modelUrl, setModelUrl] = useState<string | null>(null);
-    const { modelData } = useWebSocket();
+    const { threeData } = useWebSocket();
 
-    const modelValue = modelData[`${nodeId}-${dataKey}`];
+    const modelValue = threeData[`${nodeId}-${dataKey}`];
 
     useEffect(() => {
         if (!modelValue) {

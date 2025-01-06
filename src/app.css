@@ -3,9 +3,10 @@
   --category-image: 21, 95, 160;
   --category-utility: 139, 195, 74;
   --category-text-encoder: 228, 168, 15;
-  --category-vae: 93, 37, 130;
+  --category-vae: 86, 38, 118;
   --category-samplers: 186, 21, 81;
-  --test: rgb(186, 21, 81);
+  --category-loaders: 12, 139, 71;
+  --test: rgb(86, 38, 118);
 }
 
 .react-flow__handle {
@@ -132,6 +133,14 @@
   background-color: rgba(var(--category-samplers), 0.25);
 }
 
+.left-sidebar .category-loaders {
+  border-color: rgb(var(--category-loaders));
+}
+
+.left-sidebar .category-loaders:hover {
+  background-color: rgba(var(--category-loaders), 0.25);
+}
+
 /* Node header */
 
 .react-flow__node-custom .category-default header {
@@ -158,6 +167,10 @@
 
 .react-flow__node-custom .category-samplers header {
   border-color: rgb(var(--category-samplers));
+}
+
+.react-flow__node-custom .category-loaders header {
+  border-color: rgb(var(--category-loaders));
 }
 
 /* Node selection */
@@ -188,17 +201,24 @@
   outline: 2px solid rgba(var(--category-samplers), 0.66);
 }
 
+.react-flow__node-custom.selected .category-loaders {
+  outline: 2px solid rgba(var(--category-loaders), 0.66);
+}
+
 /* Node handles */
 
 .react-flow__node-custom .default-handle {
   background-color: rgb(var(--category-default));
 }
 
+.react-flow__node-custom .latent-handle,
 .react-flow__node-custom .image-handle {
   background-color: rgb(var(--category-image));
 }
 
+.react-flow__node-custom .SDXLEmbeddings-handle,
 .react-flow__node-custom .SD3Embeddings-handle,
+.react-flow__node-custom .embeddings-handle,
 .react-flow__node-custom .SD3TextEncoders-handle,
 .react-flow__node-custom .T5Encoders-handle,
 .react-flow__node-custom .CLIPTextEncoders-handle {
@@ -213,7 +233,9 @@
   background-color: rgb(var(--category-vae));
 }
 
+.react-flow__node-custom .SDXLPipeline-handle,
 .react-flow__node-custom .SD3Pipeline-handle,
+.react-flow__node-custom .pipeline-handle,
 .react-flow__node-custom .SD3Transformer2DModel-handle,
 .react-flow__node-custom .samplers-handle {
   background-color: rgb(var(--category-samplers));

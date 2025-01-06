@@ -18,6 +18,8 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import Slider from '@mui/material/Slider';
 
 //import TextareaAutosize from '@mui/material/TextareaAutosize';
 import MenuItem from '@mui/material/MenuItem';
@@ -205,12 +207,13 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
     switch (fieldType) {
         case 'input':
             field = (
-                <Box key={key} sx={{ pt: "4px", pb: "4px", position: 'relative', ...style }}>
+                <Box key={key} sx={{ pb: 1, position: 'relative', ...style }}>
                     <Handle
                         id={key}
                         type="target"
                         position={Position.Left}
                         className={`${dataType}-handle`}
+                        style={{ marginTop: '-4px' }}
                     />
                     <Box sx={{ paddingLeft: 1 }}>{props.label || key}</Box>
                 </Box>
@@ -218,12 +221,13 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
             break;
         case 'output':
             field = (
-                <Box key={key} sx={{ pt: "4px", pb: "4px", position: 'relative', ...style }}>
+                <Box key={key} sx={{ pb: 1, position: 'relative', ...style }}>
                     <Handle
                         id={key}
                         type="source"
                         position={Position.Right}
                         className={`${dataType}-handle`}
+                        style={{ marginTop: '-4px' }}
                     />
                     <Box sx={{ textAlign: 'right', paddingRight: 1 }}>{props.label || key}</Box>
                 </Box>
@@ -239,7 +243,8 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
                         size="small"
                         fullWidth
                         multiline
-                        rows={3}
+                        minRows={3}
+                        maxRows={12}
                         label={props.label || key}
                         value={props.value || props.default || ''}
                         sx={{ '& textarea': { fontSize: '13px' } }}
@@ -328,8 +333,9 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
             );
             break;
         case 'tags':
+            const tags = typeof props.value === 'string' ? [props.value] : props.value || typeof props.default === 'string' ? [props.default] : props.default || [];
             field = (
-                <Box key={key} sx={{ pt: 1, pb: 1, minWidth: '320px', maxWidth: '460px', ...style }} className="nodrag nowheel">
+                <Box key={key} sx={{ pt: 1, pb: 1, minWidth: '320px', maxWidth: '460px', ...style }} className="nodrag">
                     <Autocomplete
                         multiple
                         disablePortal
@@ -339,7 +345,7 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
                         options={props.options || []}
                         renderInput={(params: any) => <TextField {...params} label={props.label || key} />}
                         onChange={(_, value) => onValueChange(nodeId, key, value)}
-                        value={props.value || props.default || []}
+                        value={tags}
                         size="small"
                         sx={{ '& + .MuiAutocomplete-popper .MuiAutocomplete-option': { fontSize: '12px', p: 0.5, pl: 1, pr: 1 },
                             '& .MuiChip-root': {
@@ -358,7 +364,7 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
                             sx={{ m: 0, p: 0 }}
                             control={<Checkbox
                                 color="secondary"
-                                defaultChecked={props.default || false}
+                                defaultChecked={props.value !== undefined ? props.value : props.default || false}
                                 onChange={(e) => onValueChange(nodeId, key, e.target.checked)}
                                 className="nodrag"
                             />}
@@ -379,7 +385,7 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
                                 size="small"
                                 color="secondary"
                                 className="nodrag"
-                                defaultChecked={props.default || false}
+                                defaultChecked={props.value !== undefined ? props.value : props.default || false}
                                 onChange={(e) => onValueChange(nodeId, key, e.target.checked)}
                             />}
                             label={props.label || key}
@@ -390,7 +396,7 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
             break;
         case 'ui_image':
             field = (
-                <Box key={key} sx={{ ...style }}>
+                <Box key={key} sx={{ minWidth: '16px', minHeight: '16px', textAlign: 'center', ...style }}>
                     <img src={props.value || props.default || ''} alt={props.label || key} data-key={key} />
                 </Box>
             );
@@ -451,14 +457,20 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
                                 sx: {
                                     boxShadow: "0px 4px 8px 2px rgba(0, 0, 0, 0.5)",
                                     backgroundColor: theme.palette.secondary.dark,
+                                    maxHeight: '640px',
+                                    lineHeight: '0',
                                 },
-                            },
+                            }
                         }}
                     >
                         {props.options.map((option: any, i: number) => (
-                            <MenuItem key={i} onClick={() => handleMenuItemClick(i)}>
-                                {option.label}
-                            </MenuItem>
+                            option.label?.startsWith('---') ? (
+                                <Divider key={i} sx={{ borderColor: 'rgba(255, 255, 255, 0.5)' }} />
+                            ) : (
+                                <MenuItem key={i} sx={{ lineHeight: '1.2', pl: 1, pr: 1 }} onClick={() => handleMenuItemClick(i)}>
+                                    {option.label}
+                                </MenuItem>
+                            )
                         ))}
                     </Menu>
                 </Box>
@@ -483,6 +495,28 @@ const renderNodeContent = (nodeId: string, key: string, props: any, onValueChang
                     onChange={(newValue) => onValueChange(nodeId, key, newValue)}
                     style={style}
                 />
+            );
+            break;
+        case 'range':
+            field = (
+                <Box key={key} sx={{ pt: 1, pb: 1, pl: 1, pr: 1, ...style }} className="nodrag">
+                    <Typography gutterBottom sx={{ fontSize: '14px' }}>{props.label || key}</Typography>
+                    <Slider
+                        value={props.value || props.default || [0, 1]}
+                        onChange={(_, newValue) => onValueChange(nodeId, key, newValue)}
+                        min={props.min || 0}
+                        max={props.max || 1}
+                        step={props.step || 0.01}
+                        valueLabelDisplay="auto"
+                        color="secondary"
+                        disableSwap
+                        sx={{
+                            '& .MuiSlider-thumb': {
+                                color: theme.palette.secondary.main,
+                            },
+                        }}
+                    />
+                </Box>
             );
             break;
         case 'custom':

@@ -151,6 +151,7 @@ export type NodeState = {
     getParam: (id: string, param: string, key: keyof NodeParams) => any;
     setNodeExecuted: (id: string, cache: boolean, time: number, memory: number) => void;
     exportGraph: (sid: string) => GraphExport;
+    updateLocalStorage: () => void;
 };
 
 export const useNodeState = createWithEqualityFn<NodeState>((set, get) => ({
@@ -249,6 +250,14 @@ export const useNodeState = createWithEqualityFn<NodeState>((set, get) => ({
                 : node
             )) // is this real life?
         });
+        
+        get().updateLocalStorage();
+    },
+    updateLocalStorage: () => {
+        const stored = localStorage.getItem('workflow');
+        const { viewport } = stored ? JSON.parse(stored) : { viewport: { x: 0, y: 0, zoom: 1 } };
+        const workflow: StoredWorkflow = { nodes: get().nodes, edges: get().edges, viewport };
+        localStorage.setItem('workflow', JSON.stringify(workflow));
     },
     getParam: (id: string, param: string, key: keyof NodeParams) => {
         const node = get().nodes.find(n => n.id === id);
