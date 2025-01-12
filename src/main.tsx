@@ -33,7 +33,7 @@ const themeOptions = createTheme({
     },
   },
   typography: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: 'JetBrains Mono',
   },
   /* Disable all transitions

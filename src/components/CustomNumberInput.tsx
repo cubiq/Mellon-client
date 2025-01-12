@@ -269,14 +269,13 @@ const CustomNumberInput = ({
                 ref={inputRef}
                 value={inputValue}
                 onChange={handleChange}
+                size="small"
                 sx={{ flexGrow: 1 }}
                 slotProps={{
                     input: {
-                        sx: { fontSize: '14px', textAlign: 'right', padding: 0, cursor: 'default' },
+                        sx: { textAlign: 'right', padding: 0, cursor: 'default' },
                     },
                 }}
-                //startAdornment={<InputAdornment sx={{ '> p': { color: theme.palette.text.primary } }} position="start">{label}</InputAdornment>}
-                size="small"
             />
             <IconButton
                 size="small"

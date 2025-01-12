@@ -8,8 +8,6 @@ type NodeType = {
         action: string
         category: string
         params?: { [key: string]: any }
-        output?: { [key: string]: any }
-        ui?: { [key: string]: any }
     }
 }
 

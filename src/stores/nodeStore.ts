@@ -17,20 +17,35 @@ import { nanoid } from 'nanoid';
 
 import config from '../../config';
 
-type NodeParams = {
+export type GroupParams = {
+    key: string;
+    display: 'group' | 'collapse';
+    label?: string | null;
+    hidden?: boolean;
+    disabled?: boolean;
+    open?: boolean;
+    direction?: 'row' | 'column';
+}
+
+export type NodeParams = {
     type?: string | string[];
     label?: string;
     display?: string;
     value?: any;
-    options?: string | string[];
+    options?: any;
     default?: any;
     description?: string;
     source?: string;
     min?: number;
     max?: number;
     step?: number;
-    group?: string | { [key: string]: string };
+    group?: GroupParams;
     style?: { [key: string]: string };
+    no_validation?: boolean;
+    disabled?: boolean;
+    hidden?: boolean;
+    onChange?: any;
+    icon?: string;
 };
 
 type NodeData = {
@@ -43,6 +58,7 @@ type NodeData = {
     memory?: number;
     label?: string;
     description?: string;
+    groups?: { [key: string]: { disabled?: boolean, hidden?: boolean, open?: boolean } };
     style?: { [key: string]: string };
 };
 
@@ -148,6 +164,7 @@ export type NodeState = {
     onConnect: OnConnect;
     addNode: (node: CustomNodeType) => void;
     setParamValue: (id: string, key: string, value: any) => void;
+    setParam: (id: string, param: string, value: any, key?: keyof NodeParams) => void;
     getParam: (id: string, param: string, key: keyof NodeParams) => any;
     setNodeExecuted: (id: string, cache: boolean, time: number, memory: number) => void;
     exportGraph: (sid: string) => GraphExport;
@@ -259,6 +276,41 @@ export const useNodeState = createWithEqualityFn<NodeState>((set, get) => ({
         const workflow: StoredWorkflow = { nodes: get().nodes, edges: get().edges, viewport };
         localStorage.setItem('workflow', JSON.stringify(workflow));
     },
+    setParam: (id: string, param: string, value: any, key?: keyof NodeParams) => {
+        const k = key ?? 'value';
+
+        if (k !== 'group') {
+            set({
+                nodes: get().nodes.map((node) => (
+                    node.id === id
+                    ? {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            params: {
+                                ...node.data.params,
+                                [param]: {
+                                    ...node.data.params[param],
+                                    [k]: value
+                                }
+                            }
+                        }
+                    }
+                    : node
+                )) // is this real life?
+            });
+        } else {
+            set({
+                nodes: get().nodes.map((node) => (
+                    node.id === id
+                    ? { ...node, data: { ...node.data, groups: { ...node.data.groups, [param]: { ...node.data.groups?.[param], ...value } } } }
+                    : node
+                ))
+            });
+        }
+
+        get().updateLocalStorage();
+    },
     getParam: (id: string, param: string, key: keyof NodeParams) => {
         const node = get().nodes.find(n => n.id === id);
         return node?.data.params[param][key];
@@ -284,5 +336,4 @@ export const useNodeState = createWithEqualityFn<NodeState>((set, get) => ({
 
         return graphData;
     }
-
 }));

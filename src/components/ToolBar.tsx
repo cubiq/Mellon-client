@@ -150,12 +150,11 @@ export default function LeftSidebar() {
               borderBottom: `1px solid ${theme.palette.divider}`,
               boxShadow: 'none',
               backgroundColor: '#1a1a1a',
-              fontSize: '13px',
+              fontSize: 12,
               p: 0, m: 0,
               '&:before': {
                 backgroundColor: 'transparent',
               },
-              //'&.Mui-expanded': { },
               '.MuiAccordionSummary-root': {
                 backgroundColor: '#1a1a1a',
                 '&:hover': {
@@ -188,7 +187,7 @@ export default function LeftSidebar() {
                         display: !filteredNodes || filteredNodes.includes(node.key) ? 'flex' : 'none',
                       }}
                     >
-                      <ListItemText primary={node.label || node.key} />
+                      <ListItemText primary={node.label || node.key} sx={{ '& .MuiTypography-root': { fontSize: 12 } }} />
                     </ListItem>
                   ))}
                 </List>

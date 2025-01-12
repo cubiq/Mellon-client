@@ -3,7 +3,7 @@
 import { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGLTF, Environment, OrbitControls } from '@react-three/drei';
-import { useWebSocket } from './WebsocketContext';
+import { useWebSocket } from '../WebsocketContext';
 
 function Model({ url }) {
     const { scene } = useGLTF(url);

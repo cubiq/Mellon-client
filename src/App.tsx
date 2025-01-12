@@ -47,7 +47,7 @@ const selectWebsocketState = (state: WebsocketState) => ({
   connect: state.connect,
 });
 
-const nodeOrigin: NodeOrigin = [0.5, 0.5];
+const nodeOrigin: NodeOrigin = [0, 0];
 const connectionLineStyle = { strokeWidth: 3, strokeDasharray: '8,8' };
 const defaultEdgeOptions = { style: { ...connectionLineStyle, strokeDasharray: 'none' } };
 

@@ -39,17 +39,17 @@
   right: -9px;
 }
 
-.customNumberInput {
-  background: rgba(255,255,255,0.1);
-}
-
-.customNumberInput:hover {
-  background: rgba(255,255,255,0.2);
+.react-flow__node-custom {
+  border-radius: 0;
 }
 
 .mellon-disabled {
   pointer-events: none !important;
-  opacity: 0.5 !important;
+  opacity: 0.35 !important;
+}
+
+.mellon-hidden {
+  display: none !important;
 }
 
 /* 
@@ -80,6 +80,7 @@
 
 /* Left sidebar */
 
+.left-sidebar .MuiListItem-root,
 .left-sidebar .category-default {
   border-color: rgb(var(--category-default));
 }
@@ -143,6 +144,8 @@
 
 /* Node header */
 
+
+.react-flow__node-custom header,
 .react-flow__node-custom .category-default header {
   border-color: rgb(var(--category-default));
 }
@@ -175,33 +178,34 @@
 
 /* Node selection */
 
-.react-flow__node-custom.selected .category-default {
+.react-flow__node-custom.selected > .MuiBox-root,
+.react-flow__node-custom.selected > .category-default {
   outline: 2px solid rgba(var(--category-default), 0.66);
 }
 
-.react-flow__node-custom.selected .category-image {
+.react-flow__node-custom.selected > .category-image {
   outline: 2px solid rgba(var(--category-image), 0.66);
 }
 
-.react-flow__node-custom.selected .category-text-encoders,
-.react-flow__node-custom.selected .category-t5,
-.react-flow__node-custom.selected .category-clip {
+.react-flow__node-custom.selected > .category-text-encoders,
+.react-flow__node-custom.selected > .category-t5,
+.react-flow__node-custom.selected > .category-clip {
   outline: 2px solid rgba(var(--category-text-encoder), 0.66);
 }
 
-.react-flow__node-custom.selected .category-utility {
+.react-flow__node-custom.selected > .category-utility {
   outline: 2px solid rgba(var(--category-utility), 0.66);
 }
 
-.react-flow__node-custom.selected .category-vae {
+.react-flow__node-custom.selected > .category-vae {
   outline: 2px solid rgba(var(--category-vae), 0.66);
 }
 
-.react-flow__node-custom.selected .category-samplers {
+.react-flow__node-custom.selected > .category-samplers {
   outline: 2px solid rgba(var(--category-samplers), 0.66);
 }
 
-.react-flow__node-custom.selected .category-loaders {
+.react-flow__node-custom.selected > .category-loaders {
   outline: 2px solid rgba(var(--category-loaders), 0.66);
 }
 
@@ -216,12 +220,12 @@
   background-color: rgb(var(--category-image));
 }
 
-.react-flow__node-custom .SDXLEmbeddings-handle,
-.react-flow__node-custom .SD3Embeddings-handle,
+.react-flow__node-custom .sdxlembeddings-handle,
+.react-flow__node-custom .sd3embeddings-handle,
 .react-flow__node-custom .embeddings-handle,
-.react-flow__node-custom .SD3TextEncoders-handle,
-.react-flow__node-custom .T5Encoders-handle,
-.react-flow__node-custom .CLIPTextEncoders-handle {
+.react-flow__node-custom .sd3textencoders-handle,
+.react-flow__node-custom .t5encoders-handle,
+.react-flow__node-custom .cliptextencoders-handle {
   background-color: rgb(var(--category-text-encoder));
 }
 
@@ -233,10 +237,10 @@
   background-color: rgb(var(--category-vae));
 }
 
-.react-flow__node-custom .SDXLPipeline-handle,
-.react-flow__node-custom .SD3Pipeline-handle,
+.react-flow__node-custom .sdxlpipeline-handle,
+.react-flow__node-custom .sd3pipeline-handle,
 .react-flow__node-custom .pipeline-handle,
-.react-flow__node-custom .SD3Transformer2DModel-handle,
+.react-flow__node-custom .sd3transformer2dmodel-handle,
 .react-flow__node-custom .samplers-handle {
   background-color: rgb(var(--category-samplers));
 }

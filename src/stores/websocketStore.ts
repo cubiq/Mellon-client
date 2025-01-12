@@ -136,8 +136,12 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
                     console.error('Invalid image message. Ignoring.');
                     return;
                 }
-                //setParamValue(message.nodeId, message.key, message.data);
-                const el = document.getElementById(message.nodeId)?.querySelector(`[data-key="${message.key}"]`);
+                // save the image to the node state, potentially memory intensive
+                //useNodeState.getState().setParam(message.nodeId, message.key, `data:image/png;base64,${message.data}`);
+
+                // update the image in the UI, without storing it in the node state
+                // memory efficient, but not doesn't survive a page reload
+                const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] img`);
                 if (el) {
                     el.setAttribute('src', `data:image/png;base64,${message.data}`);
                 }
