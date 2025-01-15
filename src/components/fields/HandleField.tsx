@@ -11,7 +11,7 @@ const InputHandle = ({ fieldKey, label, style, disabled, hidden, dataType }: Fie
             className={`${disabled ? 'mellon-disabled' : ''} ${hidden ? 'mellon-hidden' : ''}`}
         >
             <Handle
-                id={CSS.escape(fieldKey)}
+                id={fieldKey}
                 type="target"
                 position={Position.Left}
                 className={`${dataType}-handle`}
@@ -30,7 +30,7 @@ const OutputHandle = ({ fieldKey, label, style, disabled, hidden, dataType }: Fi
             className={`${disabled ? 'mellon-disabled' : ''} ${hidden ? 'mellon-hidden' : ''}`}
         >
             <Handle
-                id={CSS.escape(fieldKey)}
+                id={fieldKey}
                 type="source"
                 position={Position.Right}
                 className={`${dataType}-handle`}

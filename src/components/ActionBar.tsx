@@ -32,7 +32,7 @@ export default function AppToolbar() {
 
     const graphData = exportGraph(sid ?? '');
 
-    console.log(graphData);
+    console.info(graphData);
 
     try {
       await fetch('http://' + config.serverAddress + '/graph', {

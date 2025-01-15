@@ -246,5 +246,21 @@
 }
 
 .react-flow__handle.valid {
-  background: #10b60d;
+  outline-color: rgba(16, 182, 13, 1);
+  /*background: #10b60d;*/
+}
+
+.react-flow__connection-path {
+  stroke: #aaaaaa;
+  stroke-width: 3;
+  stroke-dasharray: 8,8;
+}
+
+.react-flow__edge .react-flow__edge-path {
+  stroke-width: 3;
+  stroke-opacity: 0.7;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke-opacity: 1;
 }

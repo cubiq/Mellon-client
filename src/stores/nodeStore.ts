@@ -32,6 +32,7 @@ export type NodeParams = {
     label?: string;
     display?: string;
     value?: any;
+    spawn?: boolean;
     options?: any;
     default?: any;
     description?: string;
@@ -203,29 +204,116 @@ export const useNodeState = createWithEqualityFn<NodeState>((set, get) => ({
     },
     onEdgesChange: (changes: EdgeChange<Edge>[]) => {
         const newEdges = applyEdgeChanges(changes, get().edges);
-        set({ edges: newEdges });
 
-        // Save to localStorage after changes
-        const stored = localStorage.getItem('workflow');
-        const { viewport } = stored ? JSON.parse(stored) : { viewport: { x: 0, y: 0, zoom: 1 } };
-        const workflow: StoredWorkflow = { nodes: get().nodes, edges: newEdges, viewport };
-        localStorage.setItem('workflow', JSON.stringify(workflow));
+        // Handle array disconnections
+        const removedEdges = changes.filter(change => change.type === 'remove');
+        for (const removedEdge of removedEdges) {
+            const edge = get().edges.find(e => e.id === removedEdge.id);
+            const spawnHandle = get().getParam(edge?.target!, edge?.targetHandle!, 'spawn');
+            if (edge && spawnHandle) {
+                const targetNode = get().nodes.find(n => n.id === edge.target);
+                if (targetNode) {
+                    // Remove the specific parameter that was disconnected
+                    set({
+                        nodes: get().nodes.map(node => {
+                            if (node.id === edge.target) {
+                                const { [edge.targetHandle!]: _, ...remainingParams } = node.data.params;
+                                return {
+                                    ...node,
+                                    data: {
+                                        ...node.data,
+                                        params: remainingParams
+                                    }
+                                };
+                            }
+                            return node;
+                        })
+                    });
+                }
+            }
+        }
+
+        set({ edges: newEdges });
+        get().updateLocalStorage();
     },
     onEdgeDoubleClick: (id: string) => {
-        const updatedEdges = get().edges.filter((edge) => edge.id !== id);
-        set({ edges: updatedEdges });
+        const edgeChange: EdgeChange = {
+            id,
+            type: 'remove'
+        };
+        
+        // Use the existing onEdgesChange handler to process the removal
+        get().onEdgesChange([edgeChange]);
     },
     onConnect: (conn: Connection) => {
         const updatedEdges = get().edges.filter(
             edge => !(edge.target === conn.target && edge.targetHandle === conn.targetHandle)
         );
-        const newEdge = { ...conn, id: nanoid() };
-        const newEdges = [...updatedEdges, newEdge];
-        set({ edges: newEdges });
 
-        // Save to localStorage after changes
-        const workflow: StoredWorkflow = { nodes: get().nodes, edges: newEdges };
-        localStorage.setItem('workflow', JSON.stringify(workflow));
+        // find the color of the target handle
+        const targetHandleEl = document.getElementById(conn.target)?.querySelector(`[data-key="${conn.targetHandle}"] .react-flow__handle`);
+        const backgroundColor = targetHandleEl ? window.getComputedStyle(targetHandleEl).backgroundColor : '#aaaaaa';
+        const newEdge = { ...conn, id: nanoid(), style: { stroke: backgroundColor } };
+        const newEdges = [...updatedEdges, newEdge];
+        const spawnHandle = get().getParam(conn.target, conn.targetHandle!, 'spawn');
+
+        // Check if this connection is replacing an existing one
+        const isReconnection = get().edges.some(
+            edge => edge.target === conn.target && edge.targetHandle === conn.targetHandle
+        );
+
+        // Handle array connections
+        if (spawnHandle && !isReconnection) {
+            const targetNode = get().nodes.find(n => n.id === conn.target);
+            if (targetNode) {
+                const baseParamKey = conn.targetHandle!.replace(/(\[\d*\])?$/, '');
+                const arrayParams = Object.keys(targetNode.data.params)
+                    .filter(k => k.startsWith(baseParamKey));
+
+                // we can spawn maximum 32 array parameters
+                if (arrayParams.length > 32) {
+                    return;
+                }
+
+                // find the biggest index of the array params
+                const nextIndex = Math.max(...arrayParams.map(k => {
+                    const match = k.match(/\[\d*\]$/);
+                    return match ? parseInt(match[0].replace('[', '').replace(']', '') || '0') : 0;
+                }));
+                const newParamKey = `${baseParamKey}[${nextIndex + 1}]`;
+
+                // Clone the base parameter
+                const baseParam = targetNode.data.params[conn.targetHandle!];
+
+                // Reorder parameters to keep array fields together
+                const orderedParams: { [key: string]: NodeParams } = {};
+                Object.entries(targetNode.data.params).forEach(([key, value]) => {
+                    orderedParams[key] = value;
+                    // Insert the new parameter right after finding an array parameter of the same type
+                    if (key === conn.targetHandle) {
+                        orderedParams[newParamKey] = { ...baseParam };
+                    }
+                });
+
+                set({
+                    nodes: get().nodes.map(node => {
+                        if (node.id === conn.target) {
+                            return {
+                                ...node,
+                                data: {
+                                    ...node.data,
+                                    params: orderedParams
+                                }
+                            };
+                        }
+                        return node;
+                    })
+                });
+            }
+        }
+
+        set({ edges: newEdges });
+        get().updateLocalStorage();
     },
     addNode: (node: CustomNodeType) => {
         //const newNode = { ...node, dragHandle: 'header' };

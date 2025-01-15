@@ -65,7 +65,7 @@ const CustomNode = memo((props: NodeProps<CustomNodeType>) => {
 
     return (
         <Box
-            id={CSS.escape(nodeId)}
+            id={nodeId}
             className={`${props.data.module}-${props.data.action} category-${props.data.category} module-${props.data.module}`}
             sx={{
                 boxShadow: 4,
@@ -224,11 +224,23 @@ const CustomNode = memo((props: NodeProps<CustomNodeType>) => {
     const prevParams = prevProps.data.params;
     const nextParams = nextProps.data.params;
 
-    const allKeys = new Set([...Object.keys(prevParams), ...Object.keys(nextParams)]);
+    const prevKeys = Object.keys(prevParams);
+    const nextKeys = Object.keys(nextParams);
 
-    for (const key of allKeys) {
-        const prev = prevParams[key] || {};
-        const next = nextParams[key] || {};
+    // Check if the objects have different number of keys
+    if (prevKeys.length !== nextKeys.length) {
+        return false;
+    }
+
+    // Check if all keys match
+    if (!prevKeys.every(key => key in nextParams)) {
+        return false;
+    }
+
+    // Now check the values for each key
+    for (const key of prevKeys) {
+        const prev = prevParams[key];
+        const next = nextParams[key];
 
         if (!deepEqual(prev.value, next.value) ||
             prev.disabled !== next.disabled ||

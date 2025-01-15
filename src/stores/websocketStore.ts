@@ -67,7 +67,6 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
         }
     
         let { address, sid, socket } = get();
-        console.log('connect', address, sid, socket);
 
         if (socket) {
             console.info('WebSocket already created.');
@@ -160,7 +159,7 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
                 // el.setAttribute('url', url);
             }
             else if (message.type === 'executed') {
-                console.log('executed', message);
+                console.info('executed', message);
                 if (!message.nodeId) {
                     console.error('Invalid executed message. Ignoring.');
                     return;
@@ -175,7 +174,6 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
                 // }
             }
             else if (message.type === 'updateValues') {
-                console.log('UpdateValues', message);
                 if (!message.nodeId || !message.key || !message.value) {
                     console.error('Invalid updateValues message. Ignoring.');
                     return;

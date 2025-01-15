@@ -48,8 +48,6 @@ const selectWebsocketState = (state: WebsocketState) => ({
 });
 
 const nodeOrigin: NodeOrigin = [0, 0];
-const connectionLineStyle = { strokeWidth: 3, strokeDasharray: '8,8' };
-const defaultEdgeOptions = { style: { ...connectionLineStyle, strokeDasharray: 'none' } };
 
 export default function App() {
   const { nodes, edges, onNodesChange, onEdgesChange, onEdgeDoubleClick, onConnect, addNode, getParam } = useNodeState(selectNodeState, shallow);
@@ -141,6 +139,9 @@ export default function App() {
   const isValidConnection = (connection: Connection) => {
     if (!connection.sourceHandle || !connection.targetHandle) return false;
 
+    // prevent self-loops
+    if (connection.source === connection.target) return false;
+
     let sourceType = getParam(connection.source, connection.sourceHandle, 'type');
     let targetType = getParam(connection.target, connection.targetHandle, 'type');
     sourceType = Array.isArray(sourceType) ? sourceType : [sourceType];
@@ -179,8 +180,6 @@ export default function App() {
       onDrop={onDrop}
       onMoveEnd={onMoveEnd}
       edgesReconnectable={true}
-      connectionLineStyle={connectionLineStyle}
-      defaultEdgeOptions={defaultEdgeOptions}
       defaultViewport={defaultViewport}
       minZoom={0.1}
       maxZoom={1.2}
