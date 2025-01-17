@@ -142,7 +142,7 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
                 // memory efficient, but not doesn't survive a page reload
                 const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] img`);
                 if (el) {
-                    el.setAttribute('src', `data:image/png;base64,${message.data}`);
+                    el.setAttribute('src', `data:image/webp;base64,${message.data}`);
                 }
             }
             else if (message.type === '3d') {

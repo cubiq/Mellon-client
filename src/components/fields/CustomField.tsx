@@ -2,63 +2,102 @@ import React from "react";
 import Box from "@mui/material/Box";
 import { useEffect, useState } from "react";
 import { FieldProps } from "../NodeContent";
-
 import config from "../../../config";
+import { useTheme } from "@mui/material/styles";
 
 const DynamicComponent = ({ component, props }: { component: string | undefined, props: any }) => {
-    const [Component, setComponent] = useState<React.ComponentType<any> | null>(null);
-
-    if (!component) {
-        console.error('No custom component source provided');
-        return <Box>No custom component source provided</Box>;
+    const [Comp, setComp] = useState<React.ComponentType<any> | null>(null);
+    const w = window as any;
+    const componentId = component?.split('/').pop();
+    if (!component || !componentId) {
+        console.error('The component must be in the format of `module/component`');
+        return <Box>Error loading component</Box>;
     }
 
     useEffect(() => {
-        const script = document.createElement('script');
+        // expose React to the custom component
+        if (w.React === undefined) {
+            w.React = React;
+        }
+
+        // Track script instances globally
+        if (w.mellonCustomScripts === undefined) {
+            w.mellonCustomScripts = new Map();
+        }
 
         const loadComponent = async () => {
             try {
-                const url = `http://${config.serverAddress}/custom_component/${component}`;
-                script.src = url;
-                script.async = true;
+                // check if the script is already loaded
+                const existingScript = w.mellonCustomScripts.get(component);
+                if (existingScript) {
+                    await existingScript;
+                } else {
+                    const loadPromise = new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = `http://${config.serverAddress}/custom_component/${component}`;
+                        script.async = true;
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        script.id = componentId;
+                        document.body.appendChild(script);
+                    });
 
-                (window as any).React = React;
+                    // Wait for script to load
+                    w.mellonCustomScripts.set(component, loadPromise);
+                    await loadPromise;
+                }
 
-                // Wait for script to load
-                await new Promise((resolve, reject) => {
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.body.appendChild(script);
-                });
+                const LoadedComponent = w[componentId];
+                if (!LoadedComponent) {
+                    throw new Error(`Component ${componentId} failed to load properly`);
+                }
 
-                const LoadedComponent = (window as any).MyComponent;
-                setComponent(() => LoadedComponent);
+                setComp(() => LoadedComponent);
             } catch (error) {
                 console.error('Error loading component:', error);
+                w.mellonCustomScripts.delete(component);
             }
         };
 
-        loadComponent();
+        // if the componentId is already in the window, use it
+        const existingComponent = w[componentId];
+        if (existingComponent) {
+            setComp(() => existingComponent);
+        } else {
+            loadComponent();
+        }
 
         // Cleanup
         return () => {
-            document.body.removeChild(script);
+            const script = document.getElementById(componentId);
+            if (script && !document.querySelector(`[data-component="${componentId}"]`)) {
+                document.body.removeChild(script);
+                w.mellonCustomScripts.delete(component);
+            }
+            // if mellonCustomScripts is empty we can also remove React from the window
+            if (w.mellonCustomScripts.size === 0) {
+                delete w.mellonCustomScripts;
+                delete w.React;
+            }
         };
-    }, [component]);
+    }, [component, componentId]);
 
-    if (!Component) {
-        return <Box>Loading component: {component}...</Box>;
+    if (!Comp) {
+        return <Box>Loading...</Box>;
     }
 
-    return <Component {...props} />;
+    return (
+        <Box data-component={componentId}>
+            <Comp {...props} />
+        </Box>
+    );
 };
 
 
 const CustomField = ({ fieldKey, value, style, disabled, hidden, label, updateStore, source }: FieldProps) => {
-    const nodeActions = {
-        setValue: (v: any) => updateStore?.(fieldKey, v),
-        updateStore: updateStore,
-    }
+    const setValue = (v: any) => updateStore?.(fieldKey, v);
+    const theme = useTheme();
+
     return (
         <Box
             data-key={fieldKey}
@@ -71,7 +110,8 @@ const CustomField = ({ fieldKey, value, style, disabled, hidden, label, updateSt
                     fieldKey,
                     value,
                     label,
-                    nodeActions,
+                    setValue,
+                    theme,
                 }}
             />
         </Box>
