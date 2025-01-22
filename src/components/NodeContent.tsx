@@ -22,6 +22,7 @@ import CustomField from "./fields/CustomField";
 
 import UIDropdownIcon from "./fields/UIDropdownIcon";
 import UIImageField from "./fields/UIImageField";
+import UIStringField from "./fields/UIStringField";
 import UIThreeField from "./fields/UIThreeField";
 
 
@@ -244,6 +245,8 @@ const FieldMemo = memo((props: FieldProps) => {
             return <CustomField {...props} />;
         case 'ui_image':
             return <UIImageField {...props} />;
+        case 'ui_string':
+            return <UIStringField {...props} />;
         case 'ui_dropdownicon':
             return <UIDropdownIcon {...props} />;
         case 'ui_3d': // TODO: NOT WORKING, need to find a better way to transmit data to a three.js viewer
@@ -271,6 +274,8 @@ const getFieldType = (displayData: string, dataType: string, data: any) => {
     if (displayData === 'ui') {
         if (dataType === 'image') {
             return 'ui_image';
+        } else if (dataType.toLowerCase() === 'string') {
+            return 'ui_string';
         } else if (dataType.toLowerCase() === 'dropdownicon') {
             return 'ui_dropdownicon';
         } else if (dataType.toLowerCase() === '3d') {
