@@ -8,7 +8,7 @@ const UIImageField = ({ fieldKey, value, style, disabled, hidden, label }: Field
             sx={{ minWidth: '16px', minHeight: '16px', textAlign: 'center', ...style }}
             className={`${disabled ? 'mellon-disabled' : ''} ${hidden ? 'mellon-hidden' : ''}`}
         >
-            <img src={value} alt={label} />
+            <img src={value || `https://placehold.co/512/1F1F1F/1F1F1F?text=`} alt={label} />
         </Box>
     );
 };

@@ -1,6 +1,8 @@
 import { createWithEqualityFn } from 'zustand/traditional';
 import { useNodeState } from './nodeStore';
 import { nanoid } from 'nanoid';
+import config from '../../config';
+
 /*
 const selectNodeState = (state: NodeState) => ({
     nodes: state.nodes,
@@ -142,7 +144,20 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
                 // memory efficient, but not doesn't survive a page reload
                 const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] img`);
                 if (el) {
-                    el.setAttribute('src', `data:image/webp;base64,${message.data}`);
+                    // el.setAttribute('src', `data:image/webp;base64,${message.data}`);
+                    el.setAttribute('src', `http://${config.serverAddress}${message.data[0].url}`);
+                }
+            }
+            else if (message.type === 'string') {
+                if (!message.data || !message.nodeId || !message.key) {
+                    console.error('Invalid string message. Ignoring.');
+                    return;
+                }
+                // update the string in the UI, without storing it in the node state
+                // memory efficient, but not doesn't survive a page reload
+                const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] div`);
+                if (el) {
+                    el.setHTMLUnsafe(message.data[0].string)
                 }
             }
             else if (message.type === '3d') {

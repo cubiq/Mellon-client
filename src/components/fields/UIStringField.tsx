@@ -8,7 +8,7 @@ const UIStringField = ({ fieldKey, value, style, disabled, hidden, label }: Fiel
             sx={{ minWidth: '16px', minHeight: '16px', textAlign: 'center', ...style }}
             className={`${disabled ? 'mellon-disabled' : ''} ${hidden ? 'mellon-hidden' : ''}`}
         >
-            {value}
+            <Box>{value || `-`}</Box>
         </Box>
     );
 };
