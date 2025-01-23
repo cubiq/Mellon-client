@@ -19,7 +19,6 @@ import RangeField from "./fields/RangeField";
 import TextareaField from "./fields/TextareaField";
 import TagsField from "./fields/TagsField";
 import CustomField from "./fields/CustomField";
-
 import UIDropdownIcon from "./fields/UIDropdownIcon";
 import UIImageField from "./fields/UIImageField";
 import UIThreeField from "./fields/UIThreeField";
@@ -59,43 +58,6 @@ export type GroupProps = {
     style?: SxProps<Theme>;
 }
 
-// Memoize wrapper for fields
-// const withFieldMemo = (WrappedComponent: React.ComponentType<FieldProps>) => {
-//     const MemoizedField = memo(WrappedComponent, (prevProps, nextProps) => {
-//         return (
-//             deepEqual(prevProps.value, nextProps.value) &&
-//             prevProps.disabled === nextProps.disabled &&
-//             prevProps.hidden === nextProps.hidden
-//         );
-//     });
-
-//     // Preserve the display name for debugging
-//     MemoizedField.displayName = `Memoized${WrappedComponent.name}`;
-//     return MemoizedField;
-// };
-// const HandleFieldMemo = withFieldMemo(HandleField);
-// const TextFieldMemo = withFieldMemo(TextField);
-// const ToggleFieldMemo = withFieldMemo(ToggleField);
-// const AutocompleteFieldMemo = withFieldMemo(AutocompleteField);
-// const SelectFieldMemo = withFieldMemo(SelectField);
-// const IconToggleFieldMemo = withFieldMemo(IconToggleField);
-// const NumberFieldMemo = withFieldMemo(NumberField);
-// const RangeFieldMemo = withFieldMemo(RangeField);
-// const TextareaFieldMemo = withFieldMemo(TextareaField);
-// const TagsFieldMemo = withFieldMemo(TagsField);
-// Memoized wrapper for groups
-// const withGroupMemo = (WrappedComponent: React.ComponentType<GroupProps>) => {
-//     const MemoizedGroup = memo(WrappedComponent, (prevProps, nextProps) => {
-//         return (
-//             prevProps.open === nextProps.open &&
-//             prevProps.disabled === nextProps.disabled &&
-//             prevProps.hidden === nextProps.hidden
-//         );
-//     });
-//     return MemoizedGroup;
-// };
-//const AccordionFieldMemo = withGroupMemo(AccordionField);
-
 type NodeContentProps = {
     fields: NodeParams;
     updateStore: (param: string, value: any, key?: keyof NodeParams, group?: string) => void;
@@ -113,8 +75,9 @@ const NodeContent = (props: NodeContentProps) => {
         const label = data.label || key;
         
         if (displayData === 'group') {
-            const groupDisabled = props.groups?.[key]?.disabled || data.disabled || false;
-            const groupHidden = props.groups?.[key]?.hidden || data.hidden || false;
+            const groupDisabled = data.disabled !== undefined ? data.disabled : props.groups?.[key]?.disabled ?? false;
+            const groupHidden = data.hidden !== undefined ? data.hidden : props.groups?.[key]?.hidden ?? false;
+            console.log('groupHidden', label, data.hidden, groupHidden);
 
             return (
                 <GroupField
@@ -182,36 +145,6 @@ const NodeContent = (props: NodeContentProps) => {
         }
 
         return <FieldMemo key={key} {...fieldProps} />;
-
-        // switch (fieldType) {
-        //     case 'input':
-        //     case 'output':
-        //         return <HandleFieldMemo key={key} {...fieldProps} />;
-        //     case 'number':
-        //     case 'slider':
-        //         return <NumberFieldMemo key={key} {...fieldProps} />;
-        //     case 'checkbox':
-        //     case 'switch':
-        //         return <ToggleFieldMemo key={key} {...fieldProps} />;
-        //     case 'autocomplete':
-        //         return <AutocompleteFieldMemo key={key} {...fieldProps} />;
-        //     case 'select':
-        //         return <SelectFieldMemo key={key} {...fieldProps} />;
-        //     case 'textarea':
-        //         return <TextareaFieldMemo key={key} {...fieldProps} />;
-        //     case 'icontoggle':
-        //         return <IconToggleFieldMemo key={key} {...fieldProps} />;
-        //     case 'range':
-        //         return <RangeFieldMemo key={key} {...fieldProps} />;
-        //     case 'tags':
-        //         return <FieldMemo key={key} {...fieldProps} />;
-        //         //return <TagsFieldMemo key={key} {...fieldProps} />;
-        //     case 'custom':
-        //         // custom fields are not memoized, it's up to the component to handle it
-        //         return <CustomField key={key} {...fieldProps} />;
-        //     default:
-        //         return <TextFieldMemo key={key} {...fieldProps} />;
-        // }
     });
 
     //return Object.entries(props.fields).map(([key, data]: [string, any]) => renderField(key, data));

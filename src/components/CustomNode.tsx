@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { NodeProps } from '@xyflow/react';
+import { NodeProps, NodeResizeControl } from '@xyflow/react';
 import { shallow } from 'zustand/shallow';
 
 // MUI components
@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
 import LinearProgress from '@mui/material/LinearProgress';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 
 import config from '../../config';
 import { groupParams } from './utils/groupParams';
@@ -63,17 +64,38 @@ const CustomNode = memo((props: NodeProps<CustomNodeType>) => {
         setParam(nodeId, param, value, key);
     };
 
+    const resizeControl = (
+        <NodeResizeControl style={{ backgroundColor: 'transparent', border: 'none' }} minWidth={200} minHeight={8}>
+            <OpenInFullIcon sx={{
+                position: 'absolute',
+                right: '-6px',
+                bottom: '-6px',
+                transform: 'rotate(90deg)',
+                width: '26px',
+                height: '26px',
+                backgroundColor: theme.palette.background.default,
+                borderRadius: '0',
+                padding: '2px',
+                color: theme.palette.text.secondary,
+            }} />
+        </NodeResizeControl>
+    );
+
     return (
         <Box
             id={nodeId}
             className={`${props.data.module}-${props.data.action} category-${props.data.category} module-${props.data.module}`}
             sx={{
+                position: 'relative',
                 boxShadow: 4,
                 outlineOffset: '5px',
                 borderRadius: '0',
+                minWidth: '200px',
                 ...style,
             }}
         >
+            {props.data.resizable && resizeControl}
+
             <Box
                 component="header"
                 sx={{
@@ -161,6 +183,7 @@ const CustomNode = memo((props: NodeProps<CustomNodeType>) => {
                         sx={{
                             justifyContent: "space-between",
                             alignItems: "center",
+                            pr: props.data.resizable ? 2.5 : 0,
                         }}
                     >
                         <Chip
@@ -217,6 +240,13 @@ const CustomNode = memo((props: NodeProps<CustomNodeType>) => {
         </Box>
     );
 }, (prevProps, nextProps) => {
+    if (prevProps.data.time !== nextProps.data.time) {
+        return false;
+    }
+    if (prevProps.data.cache !== nextProps.data.cache) {
+        return false;
+    }
+
     if (!deepEqual(prevProps.data.groups, nextProps.data.groups)) {
         return false;
     }

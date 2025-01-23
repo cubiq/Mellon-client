@@ -1,6 +1,7 @@
 import { createWithEqualityFn } from 'zustand/traditional';
 import { useNodeState } from './nodeStore';
 import { nanoid } from 'nanoid';
+
 /*
 const selectNodeState = (state: NodeState) => ({
     nodes: state.nodes,
@@ -131,19 +132,18 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
                 get().updateNodeProgress(message.nodeId, message.progress);
             }
             else if (message.type === 'image') {
-                if (!message.data || !message.nodeId || !message.key) {
+                if (!message.nodeId || !message.key || !message.data) {
                     console.error('Invalid image message. Ignoring.');
                     return;
                 }
-                // save the image to the node state, potentially memory intensive
-                //useNodeState.getState().setParam(message.nodeId, message.key, `data:image/png;base64,${message.data}`);
+                useNodeState.getState().setParam(message.nodeId, message.key, message.data);
 
                 // update the image in the UI, without storing it in the node state
                 // memory efficient, but not doesn't survive a page reload
-                const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] img`);
-                if (el) {
-                    el.setAttribute('src', `data:image/webp;base64,${message.data}`);
-                }
+                // const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] img`);
+                // if (el) {
+                //     el.setAttribute('src', `data:image/webp;base64,${message.data}`);
+                // }
             }
             else if (message.type === '3d') {
                 if (!message.data || !message.nodeId || !message.key) {

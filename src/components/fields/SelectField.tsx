@@ -7,22 +7,35 @@ import { useEffect } from "react";
 
 const SelectField = ({ fieldKey, value, style, disabled, hidden, label, options, updateStore, onChangeAction }: FieldProps) => {
 
-    const handleShowAction = (value: string) => {
-        const items = Array.isArray(options)
-            ? options.map((option: any) => ({ key: option.value }))
-            : Object.keys(options).map(k => ({ key: k }));
-
-        items.forEach(({ key }: { key: string }) => {
+    const handleShowAction = (value: string, optionsMap: object) => {
+        Object.entries(optionsMap).forEach(([key, target]: any) => {
             const isHidden = key !== value;
 
-            if (!key || key.startsWith('__')) return;
+            if (!target) return;
 
-            if (key.endsWith("_group")) {
-                updateStore?.(key, { hidden: isHidden }, 'group');
+            if (target.endsWith('_group')) {
+                console.log('target', target, isHidden);
+                updateStore?.(target, { hidden: isHidden }, 'group');
             } else {
-                updateStore?.(key, isHidden, 'hidden');
+                updateStore?.(target, isHidden, 'hidden');
             }
         });
+
+        // const items = Array.isArray(options)
+        //     ? options.map((option: any) => ({ key: option.value }))
+        //     : Object.keys(options).map(k => ({ key: k }));
+
+        // items.forEach(({ key }: { key: string }) => {
+        //     const isHidden = key !== value;
+
+        //     if (!key || key.startsWith('__')) return;
+
+        //     if (key.endsWith("_group")) {
+        //         updateStore?.(key, { hidden: isHidden }, 'group');
+        //     } else {
+        //         updateStore?.(key, isHidden, 'hidden');
+        //     }
+        // });
     };
 
     const menuItems = Array.isArray(options) ? (
@@ -39,7 +52,7 @@ const SelectField = ({ fieldKey, value, style, disabled, hidden, label, options,
 
     useEffect(() => {
         if (onChangeAction?.action === 'show') {
-            handleShowAction(value);
+            handleShowAction(value, onChangeAction?.target);
         }
     }, [value]);
 

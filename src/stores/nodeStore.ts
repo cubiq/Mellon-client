@@ -59,6 +59,7 @@ type NodeData = {
     memory?: number;
     label?: string;
     description?: string;
+    resizable?: boolean;
     groups?: { [key: string]: { disabled?: boolean, hidden?: boolean, open?: boolean } };
     style?: { [key: string]: string };
 };
