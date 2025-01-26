@@ -133,12 +133,11 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
                 get().updateNodeProgress(message.nodeId, message.progress);
             }
             else if (message.type === 'image') {
-                if (!message.data || !message.nodeId || !message.key) {
+                if (!message.nodeId || !message.key || !message.data) {
                     console.error('Invalid image message. Ignoring.');
                     return;
                 }
-                // save the image to the node state, potentially memory intensive
-                //useNodeState.getState().setParam(message.nodeId, message.key, `data:image/png;base64,${message.data}`);
+                useNodeState.getState().setParam(message.nodeId, message.key, message.data);
 
                 // update the image in the UI, without storing it in the node state
                 // memory efficient, but not doesn't survive a page reload
