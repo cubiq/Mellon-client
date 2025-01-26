@@ -141,11 +141,11 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
 
                 // update the image in the UI, without storing it in the node state
                 // memory efficient, but not doesn't survive a page reload
-                const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] img`);
-                if (el) {
-                    // el.setAttribute('src', `data:image/webp;base64,${message.data}`);
-                    el.setAttribute('src', `http://${config.serverAddress}${message.data[0].url}`);
-                }
+                // const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] img`);
+                // if (el) {
+                //     // el.setAttribute('src', `data:image/webp;base64,${message.data}`);
+                //     el.setAttribute('src', `http://${config.serverAddress}${message.data[0].url}`);
+                // }
             }
             else if (message.type === 'string') {
                 if (!message.data || !message.nodeId || !message.key) {
@@ -154,10 +154,10 @@ export const useWebsocketState = createWithEqualityFn<WebsocketState>((set, get)
                 }
                 // update the string in the UI, without storing it in the node state
                 // memory efficient, but not doesn't survive a page reload
-                const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] div`);
-                if (el) {
-                    el.setHTMLUnsafe(message.data[0].string)
-                }
+                // const el = document.querySelector(`#${CSS.escape(message.nodeId)} [data-key="${message.key}"] div`);
+                // if (el) {
+                //     el.setHTMLUnsafe(message.data[0].string)
+                // }
             }
             else if (message.type === '3d') {
                 if (!message.data || !message.nodeId || !message.key) {
