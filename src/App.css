@@ -1,0 +1,81 @@
+.clear-fix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.mellon-hidden {
+  display: none !important;
+}
+
+.mellon-disabled {
+  opacity: 0.35 !important;
+  pointer-events: none !important;
+}
+
+.mellon-resize-handle-active {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.react-flow__handle {
+  width: 10px;
+  height: 8px;
+  border-radius: 0;
+  outline-width: 4px;
+  outline-style: solid;
+}
+
+.react-flow__handle::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  cursor: crosshair;
+}
+
+.react-flow__handle-left {
+  left: -2px;
+}
+
+.react-flow__handle-right {
+  right: -2px;
+}
+
+.react-flow__connection-path {
+  stroke: #aaaaaa;
+  stroke-width: 3;
+  stroke-dasharray: 8,8;
+}
+
+.react-flow__edge .react-flow__edge-path {
+  stroke-width: 3;
+  stroke-opacity: 0.7;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke-opacity: 1;
+}
+
+.react-flow.connecting * {
+  cursor: crosshair !important;
+}
+
+.react-flow__connection-path {
+  marker-end: url(#connection-marker);
+}
+
+/* .invalid-connection .react-flow__connection-path {
+  stroke: #c22416;
+}
+.invalid-connection #connection-marker rect {
+  fill: #c22416;
+} */
+.valid-connection .react-flow__connection-path {
+  stroke: #39b62b;
+}
+.valid-connection #connection-marker rect {
+  fill: #39b62b;
+}
