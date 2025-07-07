@@ -150,9 +150,9 @@ export const useFlowStore = create<FlowStore>()(
                 ...conn,
                 id: nanoid(),
                 type: conn.edgeType || 'default',
-                zIndex: 1000,
                 className: `category-${handleType}`,
             };
+            // ^^ Add zIndex:1000 to move the edge above the node
 
             const targetNode = get().nodes.find(n => n.id === conn.target);
             // check if the target handle is a spawn handle
