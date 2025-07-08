@@ -137,6 +137,13 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
               '& .MuiLinearProgress-bar': {
                 transition: 'none',
               },
+              '& .MuiLinearProgress-bar1Determinate': {
+                backgroundColor: 'primary.main',
+                background: `linear-gradient(100deg, #ffb300 50%, #ff4259 90%)`,
+              },
+              '& .MuiLinearProgress-bar1Indeterminate, & .MuiLinearProgress-bar2Indeterminate': {
+                background: `linear-gradient(100deg, #ffb300 50%, #ff4259 90%)`,
+              },
             }}
           />
         </Box>

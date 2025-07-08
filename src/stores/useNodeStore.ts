@@ -43,6 +43,7 @@ export type NodeParams = {
 type NodesStore = {
     nodesRegistry: Record<string, NodeData>
     isLoading: boolean
+    instance: string
     error: string | null
     fetchNodes: () => Promise<void>
 }
@@ -50,6 +51,7 @@ type NodesStore = {
 export const useNodesStore = create<NodesStore>()((set) => ({
     nodesRegistry: {},
     isLoading: false,
+    instance: '',
     error: null,
     
     fetchNodes: async () => {
@@ -57,7 +59,7 @@ export const useNodesStore = create<NodesStore>()((set) => ({
         try {
             const response = await fetch(`${config.serverAddress}/nodes`)
             const data = await response.json()
-            set({ nodesRegistry: data, isLoading: false })
+            set({ nodesRegistry: data.nodes, instance: data.instance, isLoading: false })
         } catch (error) {
             const message = `Server ${config.serverAddress} is not responding. Check if the server is running and the address is correct.`
             set({ error: message, isLoading: false })

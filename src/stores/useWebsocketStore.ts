@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 import config from '../../app.config';
 
 import { useFlowStore } from './useFlowStore';
+import { useNodesStore } from './useNodeStore';
 
 export type WebsocketState ={
     address: string | null;
@@ -106,6 +107,11 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                     if (message.sid !== sid) {
                         set({ sid: message.sid });
                         console.info('Websocket sid changed');
+                    }
+                    const instance = message.instance ?? '';
+                    if (instance !== useNodesStore.getState().instance) {
+                        useNodesStore.getState().fetchNodes();
+                        console.info('Server instance changed, fetching nodes');
                     }
                     const cached = message.cachedNodes ?? [];
                     useFlowStore.getState().resetStatus(cached);

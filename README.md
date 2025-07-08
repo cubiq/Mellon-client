@@ -53,7 +53,7 @@ When done you need to run `npm run build` and copy the compiled directory into t
 
 ## Custom fields
 
-Mellon allows designing custom fields in React. Check `custom-fields/ExampleField.tsx` for an example implementation. The following is a scheleton to start from.
+Mellon allows developing custom fields in React. Check `custom-fields/ExampleField.tsx` for an example implementation. The following is a skeleton to start from.
 
 ```tsx
 import { FieldProps } from "../components/NodeContent";
