@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { FieldProps } from "../components/NodeContent";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -6,14 +6,23 @@ import Typography from "@mui/material/Typography";
 import Autocomplete from "@mui/material/Autocomplete";
 import IconButton from "@mui/material/IconButton";
 import FolderIcon from "@mui/icons-material/Folder";
+import InputBase from "@mui/material/InputBase";
 
 export default function AutocompleteField(props: FieldProps) {
     const [isFocused, setIsFocused] = useState(false);
+
+    //const optionKey = props.fieldOptions?.optionKey;
+    const optionLabel = props.fieldOptions?.optionLabel;
+
+    // const selectedValue = useMemo(() => {
+    //     return (optionKey ? props.options.find((option: any) => option[optionKey] === props.value) : props.value) ?? ''
+    // }, [props.options, props.value, optionKey]);
 
     return (
         <Box
             sx={{
                 width: '100%',
+                minWidth: '300px',
                 ...props.style,
             }}
             data-key={props.fieldKey}
@@ -44,30 +53,54 @@ export default function AutocompleteField(props: FieldProps) {
                     disablePortal={false}
                     freeSolo={props.fieldOptions?.noValidation ?? false}
                     options={props.options as string[] ?? []}
-                    title={props.value}
+                    //filterOptions={(options) => options}
+                    getOptionLabel={optionLabel ? (option) => option[optionLabel] ?? '' : undefined}
+                    //getOptionKey={optionKey ? (option) => option[optionKey] ?? '' : undefined}
+                    title={optionLabel && props.value ? props.value[optionLabel] : props.value}
                     id={props.nodeId + '-' + props.fieldKey}
-                    renderInput={(params: any) => (<div ref={params.InputProps.ref}><input type="text" {...params.inputProps} /></div>)}
+                    renderInput={(params: any) => {
+                        return (
+                            <InputBase type="text" ref={params.InputProps.ref} inputProps={params.inputProps}
+                                slotProps={{
+                                    input: {
+                                        sx: {
+                                            width: '100%',
+                                            fontSize: '14px',
+                                            p: 0,
+                                            m: 0,
+                                        },
+                                    },
+                                }}
+                                sx={{
+                                    width: '100%',
+                                    position: 'relative',
+                                }}
+                            />
+                        );
+                    }}
                     onChange={(_, value) => props.updateStore(props.fieldKey, value)}
-                    value={props.value}
+                    value={props.value ?? ''}
                     size="small"
                     className="nodrag"
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     sx={{
+                        width: '100%',
+                        //display: 'inline-block',
                         flexGrow: 1,
-                        '& input': {
-                            p: 0,
-                            m: 0,
-                            fontSize: 14,
-                            backgroundColor: 'background.default',
-                            color: 'text.primary',
-                            width: '100%',
-                            border: 'none',
-                            outline: 'none',
-                            fontFamily: 'inherit',
-                        },
+                        // '& input': {
+                        //     p: 0,
+                        //     m: 0,
+                        //     fontSize: 14,
+                        //     backgroundColor: 'background.default',
+                        //     color: 'text.primary',
+                        //     width: '100%',
+                        //     border: 'none',
+                        //     outline: 'none',
+                        //     fontFamily: 'inherit',
+                        // },
                         '&+.MuiAutocomplete-popper .MuiAutocomplete-option': {
-                            fontSize: '13px',
+                            fontSize: '12px',
                         },
                     }}
                 />

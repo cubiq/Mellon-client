@@ -187,6 +187,17 @@ const theme = createTheme({
         '.react-flow__handle.loader-handle': {
           backgroundColor: 'rgb(12, 139, 71)',
         },
+        // Upscaler
+        '.react-flow__edge.category-upscaler .react-flow__edge-path': {
+          stroke: 'rgb(88, 76, 170)',
+        },
+        'li.category-upscaler, .category-upscaler>header, .react-flow__node.selected>.category-upscaler': {
+          borderColor: 'rgb(88, 76, 170)',
+          outlineColor: 'rgb(88, 76, 170)',
+        },
+        '.react-flow__handle.upscaler-handle': {
+          backgroundColor: 'rgb(88, 76, 170)',
+        },
       },
     },
   },

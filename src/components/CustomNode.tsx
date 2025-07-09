@@ -50,7 +50,7 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
         borderRadius: "0",
         backgroundColor: "transparent",
         boxShadow: "0px 0px 8px 0px rgba(0, 0, 0, 0.3)",
-        overflow: "hidden",
+        //overflow: "hidden",
         ...style,
       }}>
 

@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { NodeData } from "../stores/useNodeStore";
 import { useSettingsStore } from "../stores/useSettingsStore";
+import { useNodesStore } from "../stores/useNodeStore";
+
 import Box from "@mui/material/Box";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -8,10 +10,12 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Typography from "@mui/material/Typography";
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-
-import OutlinedInput from "@mui/material/OutlinedInput";
 import SearchIcon from '@mui/icons-material/Search';
 import ImageIcon from '@mui/icons-material/Image';
 import TextIcon from '@mui/icons-material/TextFields';
@@ -20,11 +24,7 @@ import WebAssetIcon from '@mui/icons-material/WebAsset';
 import PersonIcon from '@mui/icons-material/Person';
 import DeblurIcon from '@mui/icons-material/Deblur';
 import FlipSharpIcon from '@mui/icons-material/FlipSharp';
-
-import { useNodesStore } from "../stores/useNodeStore";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Typography from "@mui/material/Typography";
+import PhotoSizeSelectLargeSharpIcon from '@mui/icons-material/PhotoSizeSelectLargeSharp';
 import ListItemIcon from "@mui/material/ListItemIcon";
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 
@@ -90,6 +90,8 @@ function getIcon(category: string) {
         return <DeblurIcon sx={{ fontSize: 18 }} />;
     case 'embedding':
         return <FlipSharpIcon sx={{ fontSize: 18 }} />;
+    case 'upscaler':
+        return <PhotoSizeSelectLargeSharpIcon sx={{ fontSize: 18 }} />;
     default:
         return <WebAssetIcon sx={{ fontSize: 18 }} />;
   }

@@ -165,7 +165,8 @@ const FieldMemo = memo((props: FieldProps) => {
     case 'input':
     case 'output':
       return <HandleField {...props} />;
-    case 'slider':
+      case 'number':
+      case 'slider':
       return <NumberField {...props} />;
     case 'filebrowser':
       return <FileBrowserField {...props} />;
@@ -188,7 +189,6 @@ const FieldMemo = memo((props: FieldProps) => {
       return <RadioField {...props} />;
     case 'default':
     case 'string':
-    case 'number':
     default:
       return <InputField {...props} />;
   }
