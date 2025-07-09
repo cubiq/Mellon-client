@@ -24,6 +24,7 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
   const label = node.data.label || `${node.data.module} ${node.data.action}`;
   const setParam = useFlowStore((state) => state.setParam);
   const [helpAnchorEl, setHelpAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [executionTimeAnchorEl, setExecutionTimeAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   const handleUpdateStore = useCallback((param: string, value: any, key?: keyof NodeParams) => {
     setParam(node.id, param, value, key);
@@ -171,11 +172,12 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
             size="small"
             startIcon={<TimerIcon />}
             title='Execution time'
+            onClick={(e) => setExecutionTimeAnchorEl(e.currentTarget)}
             sx={{
               minWidth: '0',
               minHeight: '0',
-              px: 1,
-              py: 0.25,
+              px: 0.75,
+              py: 0.5,
               borderRadius: 0.5,
               borderColor: 'secondary.main',
               color: 'text.secondary',
@@ -186,6 +188,33 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
               }
             }}
           >{node.data.executionTime?.last ? formatExecutionTime(node.data.executionTime.last) : '-'}</Button>
+          <Popover
+            open={!!executionTimeAnchorEl}
+            onClose={() => setExecutionTimeAnchorEl(null)}
+            anchorEl={executionTimeAnchorEl}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+            slotProps={{
+              paper: {
+                sx: {
+                  px: 1.5, py: 1,
+                  bgcolor: 'secondary.dark',
+                  backgroundImage: 'none',
+                  mt: 0.5,
+                },
+              },
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+              <Typography sx={{ width: '56px' }}>Last:</Typography><Typography>{node.data.executionTime?.last ? formatExecutionTime(node.data.executionTime.last) : '-'}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+              <Typography sx={{ width: '56px' }}>Min:</Typography><Typography>{node.data.executionTime?.min ? formatExecutionTime(node.data.executionTime.min) : '-'}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+              <Typography sx={{ width: '56px' }}>Max:</Typography><Typography>{node.data.executionTime?.max ? formatExecutionTime(node.data.executionTime.max) : '-'}</Typography>
+            </Box>
+          </Popover>
         </Box>
       </Box>
       {/* resize control */}
