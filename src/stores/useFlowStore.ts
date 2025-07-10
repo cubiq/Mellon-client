@@ -322,14 +322,14 @@ export const useFlowStore = create<FlowStore>()(
                 const node = state.nodes.find(n => n.id === id);
                 if (!node) return state;
                 return {
-                    nodes: state.nodes.map(n => n.id === id ? { ...n, data: { ...n.data, isCached, memoryUsage: memoryUsage || n.data.memoryUsage || {}, executionTime: executionTime || n.data.executionTime || {} } } : n)
+                    nodes: state.nodes.map(n => n.id === id ? { ...n, data: { ...n.data, isCached, memoryUsage: !isCached ? undefined : memoryUsage || n.data.memoryUsage || {}, executionTime: !isCached ? undefined : executionTime || n.data.executionTime || {} } } : n)
                 };
             });
         },
 
         updateCacheStatus: (ids: string | string[]) => {
             const cached = Array.isArray(ids) ? ids : [ids]
-            // set all nodes in cached to true and all others to false
+            // set all nodes in `cached` to true and all others to false
             set((state) => {
                 return {
                     nodes: state.nodes.map(n => cached.includes(n.id) ? { ...n, data: { ...n.data, isCached: true } } : { ...n, data: { ...n.data, isCached: false } })

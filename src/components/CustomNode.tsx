@@ -5,6 +5,7 @@ import { NodeParams } from "../stores/useNodeStore";
 
 import { deepEqual } from '../utils/deepEqual';
 import { formatExecutionTime } from '../utils/formatExecutionTime';
+import { formatMemory } from '../utils/formatMemory';
 import NodeContent from "./NodeContent";
 
 import Box from "@mui/material/Box";
@@ -18,17 +19,34 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import TimerIcon from '@mui/icons-material/Timer';
 import MemoryIcon from '@mui/icons-material/Memory';
+import CircleIcon from '@mui/icons-material/Circle';
+import config from "../../app.config";
+import { enqueueSnackbar } from 'notistack';
 
 const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
   const style = node.data.style || {};
   const label = node.data.label || `${node.data.module} ${node.data.action}`;
   const setParam = useFlowStore((state) => state.setParam);
+  const setNodeCached = useFlowStore((state) => state.setNodeCached);
   const [helpAnchorEl, setHelpAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [executionTimeAnchorEl, setExecutionTimeAnchorEl] = useState<HTMLButtonElement | null>(null);
-
+  const [memoryAnchorEl, setMemoryAnchorEl] = useState<HTMLButtonElement | null>(null);
   const handleUpdateStore = useCallback((param: string, value: any, key?: keyof NodeParams) => {
     setParam(node.id, param, value, key);
   }, [setParam, node.id]);
+
+  const handleClearCache = useCallback(async () => {
+    try {
+      const response = await fetch(`${config.serverAddress}/cache`, { method: 'DELETE', body: JSON.stringify({ nodes: [node.id] }) });
+        if (!response.ok) {
+            throw new Error('Failed to delete cache');
+        }
+        setNodeCached(node.id, false);
+        enqueueSnackbar('Cache cleared', { variant: 'success', autoHideDuration: 1500 });
+    } catch (error) {
+        console.error('Failed to delete cache', error);
+    }
+  }, [node.id]);
 
   return (
     <Box
@@ -151,22 +169,62 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
         <Box sx={{ p: 0.5, display: 'flex', alignItems: 'center', gap: 1, pr: '24px' }}>
           <IconButton
             size="small"
-            title=''
+            sx={{ p: 0.5 }}
             disabled={!node.data.isCached}
-            onClick={() => {
-              //setParam(node.id, 'cache', false);
-            }}
+            title={node.data.isCached ? 'Click to clear cache' : 'Not cached'}
+            onClick={handleClearCache}
+          >
+            <CircleIcon sx={{ fontSize: '14px', color: node.data.isCached ? 'success.main' : 'text.secondary.dark' }} />
+          </IconButton>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<MemoryIcon />}
+            title='Peak memory usage'
+            onClick={(e) => setMemoryAnchorEl(e.currentTarget)}
             sx={{
               minWidth: '0',
               minHeight: '0',
-              p: 0,
+              px: 0.75,
+              py: 0.5,
               borderRadius: 0.5,
               borderColor: 'secondary.main',
               color: 'text.secondary',
+              textTransform: 'none',
+              lineHeight: 1,
+              '&:hover': {
+                backgroundColor: 'secondary.dark',
+              }
+            }}
+          >{node.data.memoryUsage?.last ? formatMemory(node.data.memoryUsage.last) : '-'}</Button>
+          <Popover
+            open={!!memoryAnchorEl}
+            onClose={() => setMemoryAnchorEl(null)}
+            anchorEl={memoryAnchorEl}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+            slotProps={{
+              paper: {
+                sx: {
+                  px: 1.5, py: 1,
+                  bgcolor: 'secondary.dark',
+                  backgroundImage: 'none',
+                  mt: 0.5,
+                },
+              },
             }}
           >
-            <MemoryIcon />
-          </IconButton>
+            <Typography sx={{ fontWeight: 'bold', mb: 0.5 }}>Peak VRAM usage</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+              <Typography sx={{ width: '56px' }}>Last:</Typography><Typography>{formatMemory(node.data.memoryUsage?.last ?? 0)}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+              <Typography sx={{ width: '56px' }}>Min:</Typography><Typography>{formatMemory(node.data.memoryUsage?.min ?? 0)}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+              <Typography sx={{ width: '56px' }}>Max:</Typography><Typography>{formatMemory(node.data.memoryUsage?.max ?? 0)}</Typography>
+            </Box>
+          </Popover>
           <Button
             variant="outlined"
             size="small"
@@ -205,6 +263,7 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
               },
             }}
           >
+            <Typography sx={{ fontWeight: 'bold', mb: 0.5 }}>Execution time</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
               <Typography sx={{ width: '56px' }}>Last:</Typography><Typography>{node.data.executionTime?.last ? formatExecutionTime(node.data.executionTime.last) : '-'}</Typography>
             </Box>

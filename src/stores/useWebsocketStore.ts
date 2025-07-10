@@ -121,9 +121,9 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                         console.error('Invalid websocket message: executed without node');
                         return;
                     }
-                    useFlowStore.getState().setNodeCached(message.node, true, {}, message.executionTime);
+                    useFlowStore.getState().setNodeCached(message.node, true, message.hasChanged ? message.memoryUsage : undefined, message.hasChanged ? message.executionTime : undefined);
                     useFlowStore.getState().updateProgress(message.node, 0);
-                    console.info('Node executed', message.node);
+                    console.info(`Node ${message.node}, ${message.name}, executed in ${message.executionTime?.last ?? 0}ms`);
                     break;
                 case 'graph_completed':
                     console.info('Graph completed in', message.executionTime, 'ms');
