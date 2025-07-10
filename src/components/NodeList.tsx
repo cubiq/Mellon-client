@@ -27,6 +27,7 @@ import FlipSharpIcon from '@mui/icons-material/FlipSharp';
 import PhotoSizeSelectLargeSharpIcon from '@mui/icons-material/PhotoSizeSelectLargeSharp';
 import ListItemIcon from "@mui/material/ListItemIcon";
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import PhotoFilterIcon from '@mui/icons-material/PhotoFilter';
 
 function NodeList() {
   const { nodesRegistry } = useNodesStore();
@@ -92,6 +93,8 @@ function getIcon(category: string) {
         return <FlipSharpIcon sx={{ fontSize: 18 }} />;
     case 'upscaler':
         return <PhotoSizeSelectLargeSharpIcon sx={{ fontSize: 18 }} />;
+    case 'image_filter':
+        return <PhotoFilterIcon sx={{ fontSize: 18 }} />;
     default:
         return <WebAssetIcon sx={{ fontSize: 18 }} />;
   }

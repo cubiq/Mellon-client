@@ -198,6 +198,17 @@ const theme = createTheme({
         '.react-flow__handle.upscaler-handle': {
           backgroundColor: 'rgb(88, 76, 170)',
         },
+        // Image filter
+        '.react-flow__edge.category-image_filter .react-flow__edge-path': {
+          stroke: 'rgb(0, 140, 140)',
+        },
+        'li.category-image_filter, .category-image_filter>header, .react-flow__node.selected>.category-image_filter': {
+          borderColor: 'rgb(0, 140, 140)',
+          outlineColor: 'rgb(0, 140, 140)',
+        },
+        '.react-flow__handle.image_filter-handle': {
+          backgroundColor: 'rgb(0, 140, 140)',
+        },
       },
     },
   },
