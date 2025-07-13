@@ -4,6 +4,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 const LEFT_PANEL_WIDTH_MIN = 240;
 const RIGHT_PANEL_WIDTH_MIN = 320;
 
+// values saved to localStorage
 interface SettingsState {
   isLeftPanelOpen: boolean;
   leftPanelWidth: number;
@@ -18,11 +19,14 @@ interface SettingsState {
   nodeGroupBy: 'module' | 'category';
 
   edgeType: 'default' | 'smoothstep';
+}
 
-  // values not saved to localStorage
+// values not saved to localStorage. TODO: make this a separate store?
+interface SettingsStateVolatile {
   fileBrowserOpener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string } | null;
   modelManagerOpener: { nodeId: string | null, fieldKey: string | null } | null;
   alertOpener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null;
+  settingsOpener: boolean | null;
 }
 
 interface SettingsActions {
@@ -42,23 +46,34 @@ interface SettingsActions {
   setFileBrowserOpener: (opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string } | null) => void;
   setModelManagerOpener: (opener: { nodeId: string | null, fieldKey: string | null } | null) => void;
   setAlertOpener: (opener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null) => void;
+  setSettingsOpener: (opener: boolean | null) => void;
+
+  resetToDefault: () => void;
 }
 
-export const useSettingsStore = create<SettingsState & SettingsActions>()(
+const defaultState: SettingsState = {
+  isLeftPanelOpen: false,
+  leftPanelWidth: LEFT_PANEL_WIDTH_MIN,
+  leftPanelTabIndex: -1,
+  isRightPanelOpen: false,
+  rightPanelWidth: RIGHT_PANEL_WIDTH_MIN,
+  executeButtonIndex: 0,
+  activeNodeGroups: [],
+  nodeGroupBy: 'module',
+  edgeType: 'default',
+}
+
+const defaultVolatileState: SettingsStateVolatile = {
+  fileBrowserOpener: null,
+  modelManagerOpener: null,
+  alertOpener: null,
+  settingsOpener: null,
+};
+
+export const useSettingsStore = create<SettingsState & SettingsStateVolatile & SettingsActions>()(
   persist((set, get) => ({
-    // Initial state
-    isLeftPanelOpen: false,
-    leftPanelWidth: LEFT_PANEL_WIDTH_MIN,
-    leftPanelTabIndex: -1,
-    isRightPanelOpen: false,
-    rightPanelWidth: RIGHT_PANEL_WIDTH_MIN,
-    executeButtonIndex: 0,
-    activeNodeGroups: [],
-    nodeGroupBy: 'module',
-    edgeType: 'default',
-    fileBrowserOpener: null,
-    modelManagerOpener: null,
-    alertOpener: null,
+    ...defaultState,
+    ...defaultVolatileState,
 
     // Actions
     setLeftPanelOpen: (open: boolean) => set({ isLeftPanelOpen: open }),
@@ -85,13 +100,21 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     setFileBrowserOpener: (opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string } | null) => set({ fileBrowserOpener: opener }),
     setModelManagerOpener: (opener: { nodeId: string | null, fieldKey: string | null } | null) => set({ modelManagerOpener: opener }),
     setAlertOpener: (opener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null) => set({ alertOpener: opener }),
+    setSettingsOpener: (opener: boolean | null) => set({ settingsOpener: opener }),
+
+    resetToDefault: () => set({...defaultState}),
   }),
     {
       name: "settings",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => {
-        const { fileBrowserOpener, modelManagerOpener, alertOpener, ...rest } = state;
-        return rest;
+        // remove the volatile keys from the state
+        const persistedState: Partial<typeof state> = { ...state };
+        const volatileKeys = Object.keys(defaultVolatileState) as (keyof SettingsStateVolatile)[];
+        volatileKeys.forEach(key => delete persistedState[key]);
+
+        // return the state without the volatile keys
+        return persistedState as SettingsState;
       },
     }
   )

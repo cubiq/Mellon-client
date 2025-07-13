@@ -95,7 +95,7 @@ function ModelManagerDialog({
         } finally {
             setIsLoading(false);
         }
-    }, [config.serverAddress, cacheSearch]);
+    }, [cacheSearch]);
 
     const fetchHfHub = useCallback(async () => {
         if (!hubSearch || hubSearch.trim().length < 2) {
@@ -117,7 +117,7 @@ function ModelManagerDialog({
         }
     }, [config.serverAddress, hubSearch]);
 
-    const deleteHfModel = useCallback(async (hash: string) => {
+    const deleteHfModel = async (hash: string) => {
         setIsLoading(true);
         try {
             const response = await fetch(`${config.serverAddress}/hf_cache/${hash}`, { method: 'DELETE' });
@@ -135,7 +135,7 @@ function ModelManagerDialog({
         } finally {
             setIsLoading(false);
         }
-    }, [config.serverAddress]);
+    };
 
     const downloadHfModel = useCallback(async (repo_id: string) => {
         try {
@@ -149,13 +149,17 @@ function ModelManagerDialog({
         }
     }, [config.serverAddress]);
 
-    useEffect(() => {
-        fetchHfCache();
-    }, [fetchHfCache]);
+    const handleOnClose = () => {
+        onClose();
+        setIsOpen([]);
+        setCacheSearch('');
+        setHfCache([]);
+    }
 
     useEffect(() => {
-        setIsOpen([]);
-    }, [opener]);
+        fetchHfCache();
+    }, [fetchHfCache, cacheSearch, hfCache]);
+
 
     function formatTitle(id: string) {
         return (
@@ -183,7 +187,7 @@ function ModelManagerDialog({
     return (
         <Dialog
             open={!!opener}
-            onClose={onClose}
+            onClose={handleOnClose}
             fullWidth
             maxWidth="md"
             slotProps={{
@@ -208,18 +212,12 @@ function ModelManagerDialog({
                         '& .Mui-selected': { backgroundColor: 'rgba(0, 0, 0, 0.28)' },
                     }}
                 >
-                    <Tab label="🤗 HuggingFace Cache" />
-                    {false && <Tab label="🤗 HuggingFace Hub" />}
+                    <Tab label="🤗 Cache" />
+                    {false && <Tab label="🤗 Hub" />}
                 </Tabs>
             </DialogTitle>
             {tab === 0 && (
             <DialogContent>
-                {hfCache.length === 0 && (
-                    <Box sx={{ display: 'flex', textAlign: 'center', justifyContent: 'center', py: 3 }}>
-                        <Typography variant="h6">The local cache is empty.</Typography>
-                    </Box>
-                )}
-                {hfCache.length > 0 && (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 3 }}>
                     <OutlinedInput
                         placeholder="Filter"
@@ -231,6 +229,10 @@ function ModelManagerDialog({
                         startAdornment={<SearchIcon fontSize="small" sx={{ mr: 0.5 }} />}
                     />
                 </Box>
+                {hfCache.length === 0 && (
+                    <Box sx={{ display: 'flex', textAlign: 'center', justifyContent: 'center', py: 3 }}>
+                        <Typography variant="h6">{cacheSearch ? `No results found.` : 'The local cache is empty.'}</Typography>
+                    </Box>
                 )}
                 <List sx={{ width: '100%' }}>
                     {hfCache.map((model) => (
@@ -391,7 +393,7 @@ function ModelManagerDialog({
                     </List>
                 </DialogContent>
             )}
-            <DialogActions sx={{ p: 2, justifyContent: 'center' }}>
+            <DialogActions sx={{ p: 1, justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.22)' }}>
                 <Button variant="outlined" color="primary" onClick={onClose}>
                     Close
                 </Button>

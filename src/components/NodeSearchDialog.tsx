@@ -23,13 +23,15 @@ const NodeSearchDialog = ({ anchorPosition, onClose, onSelect, nodes, inputType 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Add effect to focus input when dialog opens
+  // Focus the input when the dialog opens
   useEffect(() => {
-    if (anchorPosition && inputRef.current) {
-      // Small delay to ensure the dialog is fully rendered
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
+    if (anchorPosition) {
+      const timer = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 10);
+      return () => clearTimeout(timer);
     }
   }, [anchorPosition]);
 
@@ -162,7 +164,7 @@ const NodeSearchDialog = ({ anchorPosition, onClose, onSelect, nodes, inputType 
             >
               <ListItemText
                 primary={node.label}
-                secondary={node.description}
+                secondary={node.description ? node.description.substring(0, 72)+(node.description.length > 72 ? '...' : '') : undefined}
               />
             </ListItemButton>
           ))

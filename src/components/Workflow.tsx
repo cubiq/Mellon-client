@@ -11,6 +11,7 @@ import {
   getIncomers,
   Viewport,
   useUpdateNodeInternals,
+  ConnectionLineType,
 } from '@xyflow/react'
 import { useShallow } from 'zustand/react/shallow'
 import { useCallback, useRef, useState } from 'react';
@@ -29,6 +30,7 @@ import Box from '@mui/material/Box';
 import FileBrowserDialog from './FileBrowserDialog';
 import ModelManagerDialog from './ModelManagerDialog';
 import AlertDialog from './AlertDialog';
+import SettingsDialog from './SettingsDialog';
 
 const nodeTypes = {
   custom: CustomNode,
@@ -58,7 +60,17 @@ function Workflow() {
   const updateViewportStore = useFlowStore(state => state.setViewport);
   const updateNodeInternals = useUpdateNodeInternals();
 
-  const { edgeType, fileBrowserOpener, setFileBrowserOpener, modelManagerOpener, setModelManagerOpener, alertOpener, setAlertOpener } = useSettingsStore();
+  const {
+    edgeType,
+    fileBrowserOpener,
+    setFileBrowserOpener,
+    modelManagerOpener,
+    setModelManagerOpener,
+    alertOpener,
+    setAlertOpener,
+    settingsOpener,
+    setSettingsOpener,
+  } = useSettingsStore();
 
   const { screenToFlowPosition, setNodes, setEdges, setViewport } = useReactFlow();
 
@@ -441,8 +453,15 @@ function Workflow() {
       reader.onload = (e) => {
         const graph = JSON.parse(e.target?.result as string);
         const { nodes, edges, viewport } = graph;
+
+        // override the edge type to the value of the edgeType store
+        const newEdges = edges.map((e: Edge) => ({
+          ...e,
+          type: edgeType
+        }));
+
         setNodes(nodes);
-        setEdges(edges);
+        setEdges(newEdges);
         setViewport(viewport);
       }
       reader.readAsText(file);
@@ -478,7 +497,7 @@ function Workflow() {
     }
 
     addNode(newNode);
-  }, [screenToFlowPosition, addNode, nodesRegistry]);
+  }, [screenToFlowPosition, addNode, nodesRegistry, edgeType]);
 
   const handleEdgeDoubleClick = useCallback((event: React.MouseEvent, edge: Edge) => {
     event.preventDefault();
@@ -497,6 +516,7 @@ function Workflow() {
         nodes={nodes}
         edges={edges}
         defaultViewport={defaultViewport}
+        connectionLineType={edgeType as ConnectionLineType}
         nodeOrigin={[0, 0]}
         minZoom={0.2}
         maxZoom={1.5}
@@ -556,6 +576,10 @@ function Workflow() {
       <ModelManagerDialog
         opener={modelManagerOpener}
         onClose={() => { setModelManagerOpener(null); }}
+      />
+      <SettingsDialog
+        opener={settingsOpener}
+        onClose={() => { setSettingsOpener(null); }}
       />
       <AlertDialog
         opener={alertOpener}

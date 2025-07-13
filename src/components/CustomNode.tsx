@@ -169,6 +169,7 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
         <Box sx={{ p: 0.5, display: 'flex', alignItems: 'center', gap: 1, pr: '24px' }}>
           <IconButton
             size="small"
+            className="nodrag"
             sx={{ p: 0.5 }}
             disabled={!node.data.isCached}
             title={node.data.isCached ? 'Click to clear cache' : 'Not cached'}
@@ -181,6 +182,7 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
             size="small"
             startIcon={<MemoryIcon />}
             title='Peak memory usage'
+            className="nodrag"
             onClick={(e) => setMemoryAnchorEl(e.currentTarget)}
             sx={{
               minWidth: '0',
@@ -230,6 +232,7 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
             size="small"
             startIcon={<TimerIcon />}
             title='Execution time'
+            className="nodrag"
             onClick={(e) => setExecutionTimeAnchorEl(e.currentTarget)}
             sx={{
               minWidth: '0',

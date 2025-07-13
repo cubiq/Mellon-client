@@ -13,6 +13,7 @@ import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useWebsocketStore } from '../stores/useWebsocketStore';
+import { useTaskStore } from '../stores/useTaskStore';
 
 import SvgIcon from '@mui/material/SvgIcon';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -27,6 +28,8 @@ import SignalWifi4BarIcon from '@mui/icons-material/SignalWifi4Bar';
 import SignalWifiOffIcon from '@mui/icons-material/SignalWifiOff';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import GetAppIcon from '@mui/icons-material/GetApp';
+import SettingsIcon from '@mui/icons-material/Settings';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const executeOptions = [
   {
@@ -46,13 +49,14 @@ const executeOptions = [
 function TopBar() {
   const executeGroupRef = useRef<HTMLDivElement>(null);
   const [executeButtonOpen, setExecuteButtonOpen] = useState(false);
-  const { isRightPanelOpen, setRightPanelOpen, executeButtonIndex, setExecuteButtonIndex, setModelManagerOpener } = useSettingsStore();
+  const { isRightPanelOpen, setRightPanelOpen, executeButtonIndex, setExecuteButtonIndex, setModelManagerOpener, setSettingsOpener } = useSettingsStore();
   const { isConnected, connect, disconnect } = useWebsocketStore();
   const { setViewport } = useReactFlow();
   const clearWorkflow = useFlowStore(state => state.clearWorkflow);
   const exportGraph = useFlowStore(state => state.exportGraph);
   const toObject = useFlowStore(state => state.toObject);
   const { sid } = useWebsocketStore();
+  const { currentTask, taskCount } = useTaskStore();
 
   const handleExecuteMenuClick = () => {
     setExecuteButtonOpen(!executeButtonOpen);
@@ -164,7 +168,7 @@ function TopBar() {
         </Button>
       </Box>
       {/* Actions */}
-      <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
         <ButtonGroup variant="contained" ref={executeGroupRef} sx={{ '& .MuiButtonGroup-lastButton': { minWidth: '0px' } }}>
           <Button variant="contained" startIcon={executeOptions[executeButtonIndex].icon} disabled={!isConnected} onClick={handleExecuteClick}>
             {executeOptions[executeButtonIndex].label}
@@ -197,6 +201,21 @@ function TopBar() {
             </ClickAwayListener>
           </Box>
         </Popper>
+
+        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+          <CircularProgress color="success" variant="determinate" value={currentTask?.progress ?? 0} size={38} thickness={4} sx={{ borderRadius: '50%', boxShadow: 'inset 0 0 0 4px rgba(255, 255, 255, 0.12)', '& .MuiCircularProgress-circle': { transition: '60ms' } }} />
+          <Box sx={{
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+            position: 'absolute',
+            display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="caption" component="div" color="text.secondary" sx={{ fontSize: '14px', fontWeight: 'bold' }}>
+              {(taskCount < 100 ? taskCount || '0' : '99+')}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
       {/* Options */}
       <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
@@ -209,6 +228,12 @@ function TopBar() {
             <path strokeLinecap="round" strokeLinejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
           </svg>
         </SvgIcon>
+        </IconButton>
+        <IconButton
+          title="Settings"
+          onClick={() => setSettingsOpener(true)}
+        >
+          <SettingsIcon />
         </IconButton>
         <IconButton
           onClick={() => setRightPanelOpen(!isRightPanelOpen)}

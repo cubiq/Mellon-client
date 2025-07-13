@@ -4,6 +4,7 @@ import config from '../../app.config';
 
 import { useFlowStore } from './useFlowStore';
 import { useNodesStore } from './useNodeStore';
+import { useTaskStore } from './useTaskStore';
 
 export type WebsocketState ={
     address: string | null;
@@ -145,6 +146,23 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                         return;
                     }
                     useFlowStore.getState().updateProgress(message.node, message.progress ?? 0);
+                    break;
+                case 'task_queued':
+                case 'task_cancelled':
+                case 'task_started':
+                case 'task_completed':
+                    if (!message.queued && !message.current) {
+                        console.error('Invalid task websocket message.');
+                        return;
+                    }
+                    useTaskStore.getState().setTasks(message.current, message.queued);
+                    break;
+                case 'task_progress':
+                    if (!message.task_id || !message.progress) {
+                        console.error('Invalid websocket message: task_progress without task_id or progress');
+                        return;
+                    }
+                    useTaskStore.getState().updateProgress(message.task_id, message.progress ?? 0);
                     break;
                 default:
                     console.warn('Unknown websocket message type', message.type);
