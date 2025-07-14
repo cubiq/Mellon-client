@@ -11,6 +11,7 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useWebsocketStore } from '../stores/useWebsocketStore';
 import { useTaskStore } from '../stores/useTaskStore';
@@ -29,7 +30,8 @@ import SignalWifiOffIcon from '@mui/icons-material/SignalWifiOff';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import SettingsIcon from '@mui/icons-material/Settings';
-import CircularProgress from '@mui/material/CircularProgress';
+import StopIcon from '@mui/icons-material/Stop';
+
 
 const executeOptions = [
   {
@@ -132,6 +134,24 @@ function TopBar() {
     }
   }
 
+  const handleStopClick = async () => {
+    try {
+      const response = await fetch(`${config.serverAddress}/stop`, {
+        method: 'GET',
+      });
+      const data = await response.json();
+      if (data.error) {
+        console.warn(data.message);
+        return;
+      }
+      enqueueSnackbar(data.message, { variant: 'success', autoHideDuration: data.message.length * 80 });
+    } catch (error) {
+      const err = `Error stopping the execution: ${error}`;
+      enqueueSnackbar(err, { variant: 'error', autoHideDuration: err.length * 80 });
+      console.error(err);
+    }
+  }
+
   useEffect(() => {
     // check if the index is valid
     if (executeButtonIndex < 0 || executeButtonIndex >= executeOptions.length) {
@@ -201,6 +221,23 @@ function TopBar() {
             </ClickAwayListener>
           </Box>
         </Popper>
+        <Button
+          title="Stop"
+          variant="text"
+          onClick={handleStopClick}
+          disabled={!isConnected || !taskCount}
+          sx={{
+            minWidth: '0px',
+            backgroundColor: `rgba(255, 255, 255, ${!isConnected || !taskCount ? '0.01' : '0.05'})`,
+            color: 'primary.main',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            },
+            px: 1
+          }}
+        >
+          <StopIcon />
+        </Button>
 
         <Box sx={{ position: 'relative', display: 'inline-flex' }}>
           <CircularProgress color="success" variant="determinate" value={currentTask?.progress ?? 0} size={38} thickness={4} sx={{ borderRadius: '50%', boxShadow: 'inset 0 0 0 4px rgba(255, 255, 255, 0.12)', '& .MuiCircularProgress-circle': { transition: '60ms' } }} />
