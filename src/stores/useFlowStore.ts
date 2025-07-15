@@ -28,6 +28,7 @@ export type FlowStore = {
     nodes: CustomNodeType[];
     edges: Edge[];
     viewport: Viewport;
+    lastExecutionTime: number;
 
     // events
     onNodesChange: OnNodesChange<CustomNodeType>;
@@ -85,6 +86,7 @@ export const useFlowStore = create<FlowStore>()(
             y: 0,
             zoom: 1,
         },
+        lastExecutionTime: 0,
 
         onNodesChange: async (changes: NodeChange<CustomNodeType>[]) => {
             const newNodes = applyNodeChanges(changes, get().nodes);
@@ -202,21 +204,21 @@ export const useFlowStore = create<FlowStore>()(
                 : [{ id: ids, type: 'remove' }];
             get().onEdgesChange(changes);
         },
-        clearWorkflow: async () => {
+        clearWorkflow: () => {
             const nodeIds = get().nodes.map(n => n.id);
 
+            // Update UI state immediately for instant feedback
+            set({ nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 }, lastExecutionTime: 0 });
+
+            // Delete cache from the server in the background (don't await)
             if (nodeIds.length > 0) {
-                try {
-                    const response = await fetch(`${config.serverAddress}/cache`, { method: 'DELETE', body: JSON.stringify({ nodes: nodeIds }) });
-                    if (!response.ok) {
-                        throw new Error('Failed to delete cache');
-                    }
-                } catch (error) {
+                fetch(`${config.serverAddress}/cache`, { 
+                    method: 'DELETE', 
+                    body: JSON.stringify({ nodes: nodeIds }) 
+                }).catch(error => {
                     console.error('Failed to delete cache', error);
-                }
+                });
             }
-            
-            set({ nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 } });
         },
         getParam: (id: string, param: string, key: keyof NodeParams) => {
             const node = get().nodes.find(n => n.id === id);

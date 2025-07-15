@@ -567,11 +567,6 @@ function Workflow() {
       <FileBrowserDialog
         opener={fileBrowserOpener}
         onClose={() => { setFileBrowserOpener(null); }}
-        onSelect={(files) => {
-          if (fileBrowserOpener?.nodeId && fileBrowserOpener?.fieldKey) {
-            setParam(fileBrowserOpener.nodeId, fileBrowserOpener.fieldKey, files);
-          }
-        }}
       />
       <ModelManagerDialog
         opener={modelManagerOpener}

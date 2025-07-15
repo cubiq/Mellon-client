@@ -98,9 +98,9 @@ function FileBrowserDialog({
     onSelect,
     multiple = false
 }: {
-    opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string } | null,
+    opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string, updateStore?: (fieldKey: string, value: any) => void } | null,
     onClose: () => void,
-    onSelect: (files: string[]) => void,
+    onSelect?: (files: string[]) => void,
     multiple?: boolean
 }) {
     const [currentPath, setCurrentPath] = useState<string>('.');
@@ -165,7 +165,7 @@ function FileBrowserDialog({
     return (
         <Dialog
             open={!!opener}
-            onClose={() => { console.log('close'); onClose(); setCurrentPath('.'); setSearch(''); }}
+            onClose={() => { onClose(); setCurrentPath('.'); setSearch(''); }}
             fullWidth
             maxWidth="lg"
             slotProps={{
@@ -296,7 +296,16 @@ function FileBrowserDialog({
             <DialogActions>
                 <Button onClick={() => { setSelectedFiles([]); onClose(); setCurrentPath('.'); setSearch(''); }}>Cancel</Button>
                 <Button
-                    onClick={() => { onSelect(selectedFiles.map(file => file.path)); setSelectedFiles([]); onClose(); setCurrentPath('.'); setSearch(''); }}
+                    onClick={() => { 
+                        if (opener?.updateStore) {
+                            opener.updateStore(opener.fieldKey, selectedFiles.map(file => file.path));
+                        }
+                        onSelect?.(selectedFiles.map(file => file.path));
+                        setSelectedFiles([]); 
+                        onClose();
+                        setCurrentPath('.');
+                        setSearch('');
+                    }}
                     disabled={selectedFiles.length === 0}
                     variant="contained"
                 >

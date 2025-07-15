@@ -27,6 +27,7 @@ interface SettingsStateVolatile {
   modelManagerOpener: { nodeId: string | null, fieldKey: string | null } | null;
   alertOpener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null;
   settingsOpener: boolean | null;
+  runningState: 'one_shot' | 'auto_queue' | 'loop';
 }
 
 interface SettingsActions {
@@ -43,10 +44,11 @@ interface SettingsActions {
 
   setEdgeType: (type: 'default' | 'smoothstep') => void;
 
-  setFileBrowserOpener: (opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string } | null) => void;
+  setFileBrowserOpener: (opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string, updateStore: (fieldKey: string, value: any) => void } | null) => void;
   setModelManagerOpener: (opener: { nodeId: string | null, fieldKey: string | null } | null) => void;
   setAlertOpener: (opener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null) => void;
   setSettingsOpener: (opener: boolean | null) => void;
+  setRunningState: (state: 'one_shot' | 'auto_queue' | 'loop') => void;
 
   resetToDefault: () => void;
 }
@@ -68,6 +70,7 @@ const defaultVolatileState: SettingsStateVolatile = {
   modelManagerOpener: null,
   alertOpener: null,
   settingsOpener: null,
+  runningState: 'one_shot',
 };
 
 export const useSettingsStore = create<SettingsState & SettingsStateVolatile & SettingsActions>()(
@@ -97,10 +100,11 @@ export const useSettingsStore = create<SettingsState & SettingsStateVolatile & S
 
     setEdgeType: (type: 'default' | 'smoothstep') => set({ edgeType: type }),
 
-    setFileBrowserOpener: (opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string } | null) => set({ fileBrowserOpener: opener }),
+    setFileBrowserOpener: (opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string, updateStore?: (fieldKey: string, value: any) => void } | null) => set({ fileBrowserOpener: opener }),
     setModelManagerOpener: (opener: { nodeId: string | null, fieldKey: string | null } | null) => set({ modelManagerOpener: opener }),
     setAlertOpener: (opener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null) => set({ alertOpener: opener }),
     setSettingsOpener: (opener: boolean | null) => set({ settingsOpener: opener }),
+    setRunningState: (state: 'one_shot' | 'auto_queue' | 'loop') => set({ runningState: state }),
 
     resetToDefault: () => set({...defaultState}),
   }),

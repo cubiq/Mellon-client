@@ -3,6 +3,7 @@ import { enqueueSnackbar } from 'notistack';
 import { useReactFlow } from '@xyflow/react';
 import { useFlowStore } from '../stores/useFlowStore';
 import config from '../../app.config';
+import { runGraph } from '../utils/runGraph';
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography';
@@ -11,7 +12,6 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
-import CircularProgress from '@mui/material/CircularProgress';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { useWebsocketStore } from '../stores/useWebsocketStore';
 import { useTaskStore } from '../stores/useTaskStore';
@@ -31,7 +31,7 @@ import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutl
 import GetAppIcon from '@mui/icons-material/GetApp';
 import SettingsIcon from '@mui/icons-material/Settings';
 import StopIcon from '@mui/icons-material/Stop';
-
+import CircularProgress from '@mui/material/CircularProgress';
 
 const executeOptions = [
   {
@@ -51,14 +51,13 @@ const executeOptions = [
 function TopBar() {
   const executeGroupRef = useRef<HTMLDivElement>(null);
   const [executeButtonOpen, setExecuteButtonOpen] = useState(false);
-  const { isRightPanelOpen, setRightPanelOpen, executeButtonIndex, setExecuteButtonIndex, setModelManagerOpener, setSettingsOpener } = useSettingsStore();
-  const { isConnected, connect, disconnect } = useWebsocketStore();
+  const { isRightPanelOpen, setRightPanelOpen, executeButtonIndex, setExecuteButtonIndex, setModelManagerOpener, setSettingsOpener, setRunningState, runningState } = useSettingsStore();
+  const { sid, isConnected, connect, disconnect } = useWebsocketStore();
+  const { currentTask, taskCount } = useTaskStore();
+
   const { setViewport } = useReactFlow();
   const clearWorkflow = useFlowStore(state => state.clearWorkflow);
-  const exportGraph = useFlowStore(state => state.exportGraph);
   const toObject = useFlowStore(state => state.toObject);
-  const { sid } = useWebsocketStore();
-  const { currentTask, taskCount } = useTaskStore();
 
   const handleExecuteMenuClick = () => {
     setExecuteButtonOpen(!executeButtonOpen);
@@ -72,6 +71,7 @@ function TopBar() {
     const i = Math.max(0, Math.min(index, executeOptions.length - 1));
     setExecuteButtonIndex(i);
     setExecuteButtonOpen(false);
+    setRunningState('one_shot');
   }
 
   const handleConnect = () => {
@@ -83,8 +83,8 @@ function TopBar() {
   }
 
   const handleNewClick = useCallback(() => {
-    setViewport({ x: 0, y: 0, zoom: 1 });
     clearWorkflow();
+    setViewport({ x: 0, y: 0, zoom: 1 });
   }, [clearWorkflow, setViewport]);
 
   const handleExportClick = useCallback(() => {
@@ -111,30 +111,20 @@ function TopBar() {
       return;
     }
 
-    const graph = exportGraph(sid);
-
-    try {
-      const response = await fetch(`${config.serverAddress}/graph`, {
-        method: 'POST',
-        body: JSON.stringify(graph),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const data = await response.json();
-      if (data.error) {
-        enqueueSnackbar(data.message, { variant: 'error', autoHideDuration: data.message.length * 80 });
-        return;
-      }
-      console.info(data.message);
-    } catch (error) {
-      const err = `Error exporting graph: ${error}`;
-      enqueueSnackbar(err, { variant: 'error', autoHideDuration: err.length * 80 });
-      console.error(err);
+    if (executeButtonIndex === 0) {
+      setRunningState('one_shot');
+    } else if (executeButtonIndex === 1) {
+      setRunningState('auto_queue');
+    } else if (executeButtonIndex === 2) {
+      setRunningState('loop');
     }
+
+    runGraph(sid);
   }
 
   const handleStopClick = async () => {
+    setRunningState('one_shot');
+
     try {
       const response = await fetch(`${config.serverAddress}/stop`, {
         method: 'GET',
@@ -190,7 +180,12 @@ function TopBar() {
       {/* Actions */}
       <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
         <ButtonGroup variant="contained" ref={executeGroupRef} sx={{ '& .MuiButtonGroup-lastButton': { minWidth: '0px' } }}>
-          <Button variant="contained" startIcon={executeOptions[executeButtonIndex].icon} disabled={!isConnected} onClick={handleExecuteClick}>
+          <Button
+            variant="contained"
+            startIcon={runningState === 'auto_queue' || runningState === 'loop' ? <CircularProgress size={18} color="inherit" /> : executeOptions[executeButtonIndex].icon}
+            disabled={!isConnected}
+            onClick={handleExecuteClick}
+          >
             {executeOptions[executeButtonIndex].label}
           </Button>
           <Button size="small" sx={{ p: 0 }} onClick={handleExecuteMenuClick} disabled={!isConnected}>
@@ -225,10 +220,10 @@ function TopBar() {
           title="Stop"
           variant="text"
           onClick={handleStopClick}
-          disabled={!isConnected || !taskCount}
+          disabled={!isConnected || ((runningState === 'one_shot' && !taskCount) || (executeButtonIndex === 1 && runningState !== 'auto_queue'))}
           sx={{
             minWidth: '0px',
-            backgroundColor: `rgba(255, 255, 255, ${!isConnected || !taskCount ? '0.01' : '0.05'})`,
+            backgroundColor: `rgba(255, 255, 255, 0.05)`,
             color: 'primary.main',
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.15)',

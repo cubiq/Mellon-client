@@ -1,7 +1,9 @@
 import { NodeProps, NodeResizeControl } from "@xyflow/react";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { CustomNodeType, useFlowStore } from "../stores/useFlowStore";
 import { NodeParams } from "../stores/useNodeStore";
+import { useSettingsStore } from "../stores/useSettingsStore";
+import { useWebsocketStore } from '../stores/useWebsocketStore';
 
 import { deepEqual } from '../utils/deepEqual';
 import { formatExecutionTime } from '../utils/formatExecutionTime';
@@ -22,6 +24,7 @@ import MemoryIcon from '@mui/icons-material/Memory';
 import CircleIcon from '@mui/icons-material/Circle';
 import config from "../../app.config";
 import { enqueueSnackbar } from 'notistack';
+import { runGraph } from "../utils/runGraph";
 
 const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
   const style = node.data.style || {};
@@ -31,9 +34,26 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
   const [helpAnchorEl, setHelpAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [executionTimeAnchorEl, setExecutionTimeAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [memoryAnchorEl, setMemoryAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const runningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { sid } = useWebsocketStore();
+
   const handleUpdateStore = useCallback((param: string, value: any, key?: keyof NodeParams) => {
     setParam(node.id, param, value, key);
-  }, [setParam, node.id]);
+
+    const currentRunningState = useSettingsStore.getState().runningState;
+    
+    if (currentRunningState === 'auto_queue' && sid) {
+      const lastExecutionTime = useFlowStore.getState().lastExecutionTime * 1000;
+      const interval = Math.min(Math.max(lastExecutionTime * 1.15, 100), 1000);
+  
+      if (runningTimeoutRef.current) {
+        clearTimeout(runningTimeoutRef.current);
+      }
+      runningTimeoutRef.current = setTimeout(() => {
+        runGraph(sid);
+      }, interval);
+    }
+  }, [setParam, node.id, sid]);
 
   const handleClearCache = useCallback(async () => {
     try {
@@ -47,6 +67,14 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
         console.error('Failed to delete cache', error);
     }
   }, [node.id]);
+
+  useEffect(() => {
+    return () => {
+      if (runningTimeoutRef.current) {
+        clearTimeout(runningTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Box

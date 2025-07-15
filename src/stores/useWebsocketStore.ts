@@ -5,6 +5,8 @@ import config from '../../app.config';
 import { useFlowStore } from './useFlowStore';
 import { useNodesStore } from './useNodeStore';
 import { useTaskStore } from './useTaskStore';
+import { useSettingsStore } from './useSettingsStore';
+import { runGraph } from '../utils/runGraph';
 
 export type WebsocketState ={
     address: string | null;
@@ -12,6 +14,7 @@ export type WebsocketState ={
     ws: WebSocket | null;
     isConnected: boolean;
     connectionTimer: NodeJS.Timeout | undefined;
+    loopTimer: NodeJS.Timeout | undefined;
     reconnectAttempts: number;
 
     connect: () => void;
@@ -24,13 +27,19 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
     ws: null,
     isConnected: false,
     connectionTimer: undefined,
+    loopTimer: undefined,
     reconnectAttempts: 0,
 
     connect: async () => {
         const timeout = get().connectionTimer;
+        const loopTimer = get().loopTimer;
         if (timeout) {
             clearTimeout(timeout);
             set({ connectionTimer: undefined });
+        }
+        if (loopTimer) {
+            clearTimeout(loopTimer);
+            set({ loopTimer: undefined });
         }
 
         const curr_ws = get().ws;
@@ -52,9 +61,14 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
 
         ws.onopen = () => {
             const timeout = get().connectionTimer;
+            const loopTimer = get().loopTimer;
             if (timeout) {
                 clearTimeout(timeout);
                 set({ connectionTimer: undefined });
+            }
+            if (loopTimer) {
+                clearTimeout(loopTimer);
+                set({ loopTimer: undefined });
             }
             set({ isConnected: true, reconnectAttempts: 0 });
             console.info('Websocket connected');
@@ -65,8 +79,9 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
             console.info('Websocket disconnected');
             // clear cache status
             useFlowStore.getState().updateCacheStatus([]);
-            
+            useSettingsStore.getState().setRunningState('one_shot');
             clearTimeout(get().connectionTimer);
+            clearTimeout(get().loopTimer);
             const attempts = get().reconnectAttempts;
             const delay = 500 * (2 ** attempts) + Math.random() * 1000;
             // We retry 5 times, if that fails, we try to ping the server via http
@@ -102,6 +117,7 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
 
         ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
+            const sid = get().sid;
 
             switch (message.type) {
                 case 'welcome':
@@ -124,10 +140,20 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                     }
                     useFlowStore.getState().setNodeCached(message.node, true, message.hasChanged ? message.memoryUsage : undefined, message.hasChanged ? message.executionTime : undefined);
                     useFlowStore.getState().updateProgress(message.node, 0);
-                    console.info(`Node ${message.node}, ${message.name}, executed in ${message.executionTime?.last ?? 0}ms`);
+                    //console.info(`Node ${message.node}, ${message.name}, executed in ${message.executionTime?.last ?? 0}ms`);
                     break;
                 case 'graph_completed':
                     console.info('Graph completed in', message.executionTime, 'ms');
+                    useFlowStore.getState().lastExecutionTime = message.executionTime ?? 0;
+                    const runningState = useSettingsStore.getState().runningState;
+                    const taskCount = useTaskStore.getState().taskCount;
+
+                    if (runningState === 'loop' && sid !== null && taskCount === 1) {
+                        const loopTimer = setTimeout(() => {
+                            runGraph(sid);
+                        }, 517); // don't fret, this is a completely arbitrary number
+                        set({ loopTimer });
+                    }
                     break;
                 case 'error':
                     console.error('Websocket error', message.error);
@@ -176,6 +202,10 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
         if (timeout) {
             clearTimeout(timeout);
         }
+        const loopTimer = get().loopTimer;
+        if (loopTimer) {
+            clearTimeout(loopTimer);
+        }
 
         set((state) => {
             if (state.ws) {
@@ -185,6 +215,7 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                 ws: null,
                 isConnected: false,
                 connectionTimer: undefined,
+                loopTimer: undefined,
                 reconnectAttempts: 0
             };
         });

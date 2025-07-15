@@ -36,7 +36,7 @@ export default function FileBrowserField(props: FieldProps) {
                 const data = await response.json();
 
                 if (!data.error) {
-                    props.updateStore(props.fieldKey, [data.path]);
+                    props.updateStore(props.fieldKey, Array.isArray(data.path) ? data.path : [data.path]);
                 } else {
                     console.error(data.error);
                 }
@@ -69,7 +69,7 @@ export default function FileBrowserField(props: FieldProps) {
             <Button
                 variant="contained"
                 color="secondary"
-                onClick={() => setFileBrowserOpener({ nodeId: props.nodeId, fieldKey: props.fieldKey, fileTypes: props.fieldOptions?.fileTypes, path: currentPath })}
+                onClick={() => setFileBrowserOpener({ nodeId: props.nodeId, fieldKey: props.fieldKey, fileTypes: props.fieldOptions?.fileTypes, path: currentPath, updateStore: props.updateStore })}
                 startIcon={<FolderOpenOutlinedIcon />}
                 className="nodrag"
                 sx={{
