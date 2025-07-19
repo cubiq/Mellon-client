@@ -296,9 +296,7 @@ export const useFlowStore = create<FlowStore>()(
                     .filter(([_key, value]) => {
                         const display = value.display;
                         // TODO: include input and output params by following the connections
-                        return display !== 'input' && 
-                               display !== 'output' && 
-                               !(typeof display === 'string' && display.toLowerCase().startsWith('ui_'));
+                        return display !== 'input' && display !== 'output';
                     })
                     .map(([key, value]) => [key, value.value ?? value.default])
             );

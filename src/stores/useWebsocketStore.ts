@@ -229,6 +229,26 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                     });
                     useFlowStore.getState().replaceNodeParams(node.id, newParams);
                     break;
+                case 'set_field_visibility':
+                    if (!message.node || !message.fields) {
+                        console.error('Invalid websocket message: set_field_visibility without node or fields');
+                        return;
+                    }
+                    const visibility = message.fields as Record<string, boolean>;
+                    Object.keys(visibility).forEach((key) => {
+                        useFlowStore.getState().setParam(message.node, key, !visibility[key], 'hidden');
+                    });
+                    break;
+                case 'set_field_value':
+                    if (!message.node || !message.fields) {
+                        console.error('Invalid websocket message: set_field_value without node or fields');
+                        return;
+                    }
+                    const values = message.fields as Record<string, any>;
+                    Object.keys(values).forEach((key) => {
+                        useFlowStore.getState().setParam(message.node, key, values[key], 'value');
+                    });
+                    break;
                 default:
                     console.warn('Unknown websocket message type', message.type);
                     break;
