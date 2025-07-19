@@ -17,6 +17,7 @@ import NumberField from '../fields/NumberField';
 
 import UITextField from '../fields/UITextField';
 import UIImageField from '../fields/UIImageField';
+import UIButtonField from '../fields/UIButtonField';
 
 export type FieldProps = {
   nodeId: string;
@@ -33,6 +34,8 @@ export type FieldProps = {
   fieldType: string;
   updateStore: (param: string, value: any, key?: keyof NodeParams) => void;
   module: string;
+  action: string;
+  isConnected?: boolean;
   onChange?: any;
   min?: number;
   max?: number;
@@ -45,12 +48,14 @@ const NodeContent = ({
   params,
   updateStore,
   module,
+  action,
   groupHandles = false,
   }: {
     nodeId: string,
     params: NodeParams,
     updateStore: (param: string, value: any, key?: keyof NodeParams) => void,
     module: string,
+    action: string,
     groupHandles?: boolean
   }) => {
   const fields = Object.entries(params).map(([key, data]: [string, NodeParams]) => {
@@ -59,18 +64,21 @@ const NodeContent = ({
     const dataType = ((Array.isArray(data.type) && data.type.length > 0 ? data.type[0] : data.type || 'string') as string);
     const fieldType = getFieldType(display, dataType, data.options);
     const hidden = data.hidden || false;
-    const value = data.value === undefined ? data.default ?? '' : data.value;
+    const value = data.value ?? data.default;
+    const isConnected = display === 'input' || display === 'output' ? data.isConnected || false : undefined;
 
     const props = {
       nodeId,
       value,
       label,
       display,
+      isConnected,
       dataType,
       fieldType,
       hidden,
       updateStore,
       module,
+      action,
       onChange: data.onChange,
       fieldKey: key,
       default: data.default,
@@ -185,6 +193,8 @@ const FieldMemo = memo((props: FieldProps) => {
       return <UITextField {...props} />;
     case 'ui_image':
       return <UIImageField {...props} />;
+    case 'ui_button':
+      return <UIButtonField {...props} />;
     case 'radio':
       return <RadioField {...props} />;
     case 'default':
@@ -198,7 +208,8 @@ const FieldMemo = memo((props: FieldProps) => {
     prev.disabled === next.disabled &&
     prev.hidden === next.hidden &&
     prev.display === next.display &&
-    prev.dataType === next.dataType
+    prev.dataType === next.dataType &&
+    prev.isConnected === next.isConnected
   );
 });
 

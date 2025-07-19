@@ -26,7 +26,7 @@ import config from "../../app.config";
 import { enqueueSnackbar } from 'notistack';
 import { runGraph } from "../utils/runGraph";
 
-const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
+const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
   const style = node.data.style || {};
   const label = node.data.label || `${node.data.module} ${node.data.action}`;
   const setParam = useFlowStore((state) => state.setParam);
@@ -163,7 +163,7 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
             mb: 1,
           },
       }}>
-        <NodeContent nodeId={node.id} params={node.data.params} updateStore={handleUpdateStore} module={node.data.module || ''} />
+        <NodeContent nodeId={node.id} params={node.data.params} updateStore={handleUpdateStore} module={node.data.module || ''} action={node.data.action || ''} />
       </Box>
 
       {/* node footer */}
@@ -371,10 +371,13 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
     if (prevParam.isInput !== nextParam.isInput) {
       return false;
     }
+    if (prevParam.isConnected !== nextParam.isConnected) {
+      return false;
+    }
   }
 
   return true;
 });
 
-export default AnyNode;
+export default CustomNode;
 

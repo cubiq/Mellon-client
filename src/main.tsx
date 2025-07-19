@@ -166,14 +166,14 @@ const theme = createTheme({
           backgroundColor: 'rgb(172, 32, 83)',
         },
         // Embedding
-        '.react-flow__edge.category-embedding .react-flow__edge-path': {
+        '.react-flow__edge.category-embedding .react-flow__edge-path, .react-flow__edge.category-SD3TextEncoders .react-flow__edge-path': {
           stroke: 'rgb(221, 171, 44)',
         },
         'li.category-embedding, .category-embedding>header, .react-flow__node.selected>.category-embedding': {
           borderColor: 'rgb(221, 171, 44)',
           outlineColor: 'rgb(221, 171, 44)',
         },
-        '.react-flow__handle.embedding-handle': {
+        ".react-flow__handle.embedding-handle, .react-flow__handle.SD3TextEncoders-handle": {
           backgroundColor: 'rgb(221, 171, 44)',
         },
         // Loader

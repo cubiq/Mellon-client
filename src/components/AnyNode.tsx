@@ -38,7 +38,7 @@ const AnyNode = memo((node: NodeProps<CustomNodeType>) => {
         ...style,
       }}
     >
-      <NodeContent nodeId={node.id} params={node.data.params} updateStore={handleOnChange} module={node.data.module || ''} groupHandles={true} />
+      <NodeContent nodeId={node.id} params={node.data.params} updateStore={handleOnChange} module={node.data.module || ''} action={node.data.action || ''} groupHandles={true} />
       { node.data.resizable && (
         <NodeResizeControl style={{ background: "transparent", border: "none" }}>
           <Box sx={{

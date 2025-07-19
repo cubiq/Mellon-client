@@ -4,6 +4,7 @@ import { FieldProps } from "../components/NodeContent";
 
 import Box from "@mui/material/Box";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
+import runFieldAction from "../utils/runFieldAction";
 
 export default function SelectField(props: FieldProps) {
     const selectOptions = useMemo(() => {
@@ -20,8 +21,22 @@ export default function SelectField(props: FieldProps) {
         ));
     }, [props.options]);
 
-    const handleFieldsToggle = (value: string) => {
+    const fieldsToggle = async (value: string) => {
         if (!props.onChange) {
+            return;
+        }
+
+        if (typeof props.onChange === 'string') {
+            props.updateStore(props.fieldKey, true, 'disabled');
+            try {
+                await runFieldAction(props.nodeId, props.module, props.action, props.onChange, props.fieldKey, props.fieldOptions?.queue || false);
+            } catch (error) {
+                props.updateStore(props.fieldKey, false, 'disabled');
+            } finally {
+                if (!props.fieldOptions?.queue) {
+                    props.updateStore(props.fieldKey, false, 'disabled');
+                }
+            }
             return;
         }
 
@@ -31,7 +46,6 @@ export default function SelectField(props: FieldProps) {
             }
 
             const isHidden = key !== value;
-
             fields.forEach((field: string) => {
                 props.updateStore(field, isHidden, 'hidden');
             });
@@ -40,11 +54,11 @@ export default function SelectField(props: FieldProps) {
 
     const handleOnChange = (e: SelectChangeEvent<string>) => {
         props.updateStore(props.fieldKey, e.target.value);
-        handleFieldsToggle(e.target.value);
+        fieldsToggle(e.target.value);
     }
 
     useEffect(() => {
-        handleFieldsToggle(props.value);
+        fieldsToggle(props.value);
     }, []);
 
     return (
@@ -54,7 +68,7 @@ export default function SelectField(props: FieldProps) {
                 ...props.style,
             }}
             data-key={props.fieldKey}
-            className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field`}
+            className={`${props.hidden ? 'mellon-hidden' : ''} ${props.disabled ? 'mellon-disabled' : ''} mellon-field`}
         >
             <Box sx={{
                 display: 'flex',

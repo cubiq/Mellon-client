@@ -16,7 +16,6 @@ export type NodeData = {
     isCached?: boolean;
     progress?: number;
     minimized?: boolean;
-    editMode?: boolean;
 }
 
 export type NodeParams = {
@@ -29,6 +28,7 @@ export type NodeParams = {
     disabled?: boolean;
     hidden?: boolean;
     isInput?: boolean;
+    isConnected?: boolean;
     spawn?: boolean;
     options?: any[] | Record<string | number | symbol, any>;
     min?: number;

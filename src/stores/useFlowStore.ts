@@ -42,7 +42,10 @@ export type FlowStore = {
     clearWorkflow: () => void;
     getParam: (id: string, param: string, key: keyof NodeParams) => any;
     setParam: (id: string, param: string, value: any, key?: keyof NodeParams) => void;
+    getNodeParamsValues: (id: string) => Record<string, any>;
+    replaceNodeParams: (id: string, params: Partial<NodeParams>) => void;
     setAllEdgesType: (edgeType: 'default' | 'smoothstep') => void;
+    updateHandleConnectionStatus: () => void;
     groupNodes: (ids: string[]) => void;
     ungroupNodes: (id: string) => void;
     setViewport: (viewport: Viewport) => void;
@@ -67,6 +70,7 @@ type APINodeExport = {
             sourceKey?: string;
             value?: any;
             display?: string | string[];
+            spawn?: boolean;
         }
     };
 }
@@ -105,9 +109,11 @@ export const useFlowStore = create<FlowStore>()(
                 }
             }
         },
-        onEdgesChange: async (changes: EdgeChange<Edge>[]) => {
+        onEdgesChange: (changes: EdgeChange<Edge>[]) => {
+            const removedEdges: Edge[] = [];
             changes.filter(change => change.type === 'remove').forEach(change => {
                 const edge = get().edges.find(e => e.id === change.id);
+                edge && removedEdges.push(edge);
                 if (edge && edge.targetHandle) {
                     const node = get().nodes.find(n => n.id === edge.target);
                     if (!node) {
@@ -139,12 +145,22 @@ export const useFlowStore = create<FlowStore>()(
 
             const newEdges = applyEdgeChanges(changes, get().edges);
             set({ edges: newEdges });
+            if (removedEdges.length > 0) {
+                get().updateHandleConnectionStatus();
+            }
         },
         onConnect: (conn: CustomConnection) => {
-            // remove existing edge to the same target handle, ie: only one connection per input handle
-            const updatedEdges = get().edges.filter(
-                edge => !(edge.target === conn.target && edge.targetHandle === conn.targetHandle)
+            // Find existing edges that need to be removed (same target and targetHandle). Ie: only one connection per input handle
+            const edgesToRemove = get().edges.filter(
+                edge => edge.target === conn.target && edge.targetHandle === conn.targetHandle
             );
+            // is this connection replacing an existing connection?
+            const isReplace = edgesToRemove.length > 0;
+            if (isReplace) {
+                // remove replaced edges
+                get().removeEdges(edgesToRemove.map(edge => edge.id));
+            }
+            
             const sourceNode = get().nodes.find(n => n.id === conn.source);
             const handleType = sourceNode?.data.params?.[conn.sourceHandle || '']?.type || 'default';
             
@@ -159,8 +175,6 @@ export const useFlowStore = create<FlowStore>()(
             const targetNode = get().nodes.find(n => n.id === conn.target);
             // check if the target handle is a spawn handle
             const isSpawn = get().getParam(conn.target, conn.targetHandle!, 'spawn');
-            // check if this connection is replacing an existing connection
-            const isReplace = get().edges.some(e => e.target === conn.target && e.targetHandle === conn.targetHandle);
 
             if (targetNode && isSpawn && !isReplace) {
                 const keyBaseName = conn.targetHandle!.split('>>>')[0];
@@ -188,7 +202,28 @@ export const useFlowStore = create<FlowStore>()(
                 set({ nodes: get().nodes.map(n => n.id === targetNode.id ? { ...n, data: { ...n.data, params: newParams } } : n) });
             }
 
-            set({ edges: [...updatedEdges, newEdge] });
+            // Add the new edge to the current edges
+            set({ edges: [...get().edges, newEdge] });
+            get().updateHandleConnectionStatus();
+        },
+        updateHandleConnectionStatus: () => {
+            const edges = get().edges;
+
+            // filter nodes that have a source or target connection
+            get().nodes.map(node => {
+                Object.keys(node.data.params)
+                    .filter(k => node.data.params[k].display === 'input' || node.data.params[k].display === 'output')
+                    .forEach(key => {
+                        const param = node.data.params[key];
+                        let isConnected = false;
+                        if (param.display === 'input') {
+                            isConnected = edges.some(e => e.target === node.id && e.targetHandle === key);
+                        } else if (param.display === 'output') {
+                            isConnected = edges.some(e => e.source === node.id && e.sourceHandle === key);
+                        }
+                        get().setParam(node.id, key, isConnected, 'isConnected');
+                    });
+                });
         },
         addNode: (node: CustomNodeType) => {
             set({ nodes: [...get().nodes, node] });
@@ -251,6 +286,64 @@ export const useFlowStore = create<FlowStore>()(
                 });
 
                 return { nodes: updatedNodes };
+            });
+        },
+        getNodeParamsValues: (id: string) => {
+            const node = get().nodes.find(n => n.id === id);
+            if (!node) return {};
+            return Object.fromEntries(
+                Object.entries(node.data.params)
+                    .filter(([_key, value]) => {
+                        const display = value.display;
+                        // TODO: include input and output params by following the connections
+                        return display !== 'input' && 
+                               display !== 'output' && 
+                               !(typeof display === 'string' && display.toLowerCase().startsWith('ui_'));
+                    })
+                    .map(([key, value]) => [key, value.value ?? value.default])
+            );
+            //return Object.fromEntries(Object.entries(node.data.params).map(([key, value]) => [key, value.value]));
+        },
+        replaceNodeParams: (id: string, params: Record<string, any>) => {
+            // Get the current node to access its current params
+            const currentNode = get().nodes.find(n => n.id === id);
+            if (!currentNode) return;
+
+            // Store edges that are connected to the node
+            const connectedEdges = get().edges.filter(e => e.source === id || e.target === id);
+            
+            // Store connection information for handles that exist in both old and new params
+            const preservedConnections: Edge[] = [];
+            
+            connectedEdges.forEach(edge => {
+                // Check if the handle still exists in the new params
+                const handleName = edge.source === id ? edge.sourceHandle : edge.targetHandle;
+                if (handleName && params[handleName]) {
+                    // This handle still exists, preserve the connection
+                    preservedConnections.push(edge);
+                }
+            });
+
+            // Remove all edges connected to the node
+            get().removeEdges(connectedEdges.map(e => e.id));
+
+            // Update the node params
+            set((state) => {
+                const node = state.nodes.find(n => n.id === id);
+                if (!node) return state;
+                return { nodes: state.nodes.map(n => n.id === id ? { ...n, data: { ...n.data, params } } : n) };
+            });
+
+            // Recreate connections for handles that still exist
+            preservedConnections.forEach(edge => {
+                const connection: CustomConnection = {
+                    source: edge.source,
+                    target: edge.target,
+                    sourceHandle: edge.sourceHandle || null,
+                    targetHandle: edge.targetHandle || null,
+                    edgeType: edge.type as 'default' | 'smoothstep' | 'straight' | 'step' | string
+                };
+                get().onConnect(connection);
             });
         },
         setAllEdgesType: (edgeType: 'default' | 'smoothstep') => {
@@ -467,6 +560,9 @@ export const useFlowStore = create<FlowStore>()(
                         display: paramData.display,
                         value: paramData.value,
                     };
+                    if (paramData.spawn) {
+                        param.spawn = true;
+                    }
                     
                     // Check if this parameter has incoming connections
                     // since inputs can only have one connection, we capture the single source

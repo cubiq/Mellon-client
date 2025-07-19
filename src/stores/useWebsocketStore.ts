@@ -182,6 +182,18 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                         return;
                     }
                     useTaskStore.getState().setTasks(message.current, message.queued);
+
+                    if (message.type === 'task_completed' && message.sid === sid && message.args) {
+                        //const values = Array.isArray(message.args) ? message.args[0]?.values ?? '' : '';
+                        const args = Array.isArray(message.args) && message.args.length > 1 ? message.args[1] : null;
+                        if (args===null) {
+                            return;
+                        }
+                        if (args.queue) {
+                            useFlowStore.getState().setParam(args.node, args.key, false, 'disabled');
+                        }
+                    }
+
                     break;
                 case 'task_progress':
                     if (!message.task_id || !message.progress) {
@@ -189,6 +201,33 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                         return;
                     }
                     useTaskStore.getState().updateProgress(message.task_id, message.progress ?? 0);
+                    break;
+                case 'node_definition':
+                    if (!message.node) {
+                        console.error('Invalid websocket message: node_definition without node');
+                        return;
+                    }
+
+                    //useNodesStore.getState().setNodeDefinition(message.node, message.definition);
+                    // get module and action from the node with id message.node
+                    const node = useFlowStore.getState().nodes.find(n => n.id === message.node);
+                    if (!node) {
+                        console.warn('The node is no longer in the graph');
+                        return;
+                    }
+                    const nodeId = node.data.module + '.' + node.data.action;
+                    const defaultDef = useNodesStore.getState().nodesRegistry[nodeId];
+                    if (!defaultDef) {
+                        console.warn('The node is no longer in the node registry');
+                        return;
+                    }
+                    const newParams = { ...defaultDef.params, ...message.params };
+                    Object.keys(defaultDef.params).forEach(key => {
+                        if (key in node.data.params) {
+                            newParams[key] = node.data.params[key];
+                        }
+                    });
+                    useFlowStore.getState().replaceNodeParams(node.id, newParams);
                     break;
                 default:
                     console.warn('Unknown websocket message type', message.type);

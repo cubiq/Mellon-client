@@ -4,12 +4,27 @@ import Box from "@mui/material/Box";
 import Checkbox from "@mui/material/Checkbox";
 import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import runFieldAction from "../utils/runFieldAction";
 
 export default function ToggleField(props: FieldProps) {
     const Component = props.fieldType === 'checkbox' ? Checkbox : Switch;
 
-    const handleFieldsToggle = (value: boolean) => {
+    const fieldsToggle = async (value: boolean) => {
         if (!props.onChange) {
+            return;
+        }
+
+        if (typeof props.onChange === 'string') {
+            props.updateStore(props.fieldKey, true, 'disabled');
+            try {
+                await runFieldAction(props.nodeId, props.module, props.action, props.onChange, props.fieldKey, props.fieldOptions?.queue || false);
+            } catch (error) {
+                props.updateStore(props.fieldKey, false, 'disabled');
+            } finally {
+                if (!props.fieldOptions?.queue) {
+                    props.updateStore(props.fieldKey, false, 'disabled');
+                }
+            }
             return;
         }
 
@@ -25,12 +40,12 @@ export default function ToggleField(props: FieldProps) {
     }
 
     useEffect(() => {
-        handleFieldsToggle(props.value);
+        fieldsToggle(props.value);
     }, []);
 
     const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
         props.updateStore(props.fieldKey, e.target.checked);
-        handleFieldsToggle(e.target.checked);
+        fieldsToggle(e.target.checked);
     }
 
     return (
@@ -40,7 +55,7 @@ export default function ToggleField(props: FieldProps) {
                 ...props.style,
             }}
             data-key={props.fieldKey}
-            className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field`}
+            className={`${props.hidden ? 'mellon-hidden' : ''} ${props.disabled ? 'mellon-disabled' : ''} mellon-field`}
         >
             <FormControlLabel
                 sx={{
