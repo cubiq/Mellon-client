@@ -96,13 +96,6 @@ const NodeSearchDialog = ({ anchorPosition, onClose, onSelect, nodes, inputType 
     }
   }, [filteredNodes, selectedIndex, onSelect, handleClose]);
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown]);
-
   return (
     <Popover
       open={Boolean(anchorPosition)}
@@ -135,6 +128,9 @@ const NodeSearchDialog = ({ anchorPosition, onClose, onSelect, nodes, inputType 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="small"
+          onKeyDown={(e) => {
+            handleKeyDown(e.nativeEvent as KeyboardEvent);
+          }}
         />
       </Box>
 
