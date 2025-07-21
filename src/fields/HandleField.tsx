@@ -46,7 +46,7 @@ export default function HandleField(props: FieldProps) {
         <Box
             data-key={props.fieldKey}
             sx={{ position: 'relative', ...props.style }}
-            className={`${props.disabled ? 'mellon-disabled' : ''}`}
+            className={`${props.disabled ? 'mellon-disabled' : ''} ${props.hidden && !props.isConnected ? 'mellon-hidden' : ''}`}
         >
             <Handle
                 id={props.fieldKey}

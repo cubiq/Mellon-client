@@ -5,7 +5,19 @@ import config from "../../app.config";
 
 export default function UIImageField(props: FieldProps) {
   let images = !Array.isArray(props.value) ? [props.value] : props.value;
-  images = images.filter((image) => image !== '');
+  images = images.filter((image) => image !== '' && image !== null && image !== undefined);
+
+  images = images.map((image) => {
+    if (props.dataType === 'url') {
+      return `${config.serverAddress}${image}`;
+    }
+
+    if (image.slice(0, 5) !== 'data:') {
+      image = `data:${props.fieldOptions?.mimeType || 'image/webp'};base64,${image}`;
+    }
+
+    return image;
+  });
 
   return (
     <Box
@@ -21,7 +33,7 @@ export default function UIImageField(props: FieldProps) {
         ...props.style,
       }}
     >
-      {images.map((image, index) => (
+      {images.length > 0 && images.map((image, index) => (
         <Box
           key={index}
           sx={{
@@ -36,7 +48,7 @@ export default function UIImageField(props: FieldProps) {
             }
           }}
         >
-          <img src={`${config.serverAddress}${image}`} alt={`${props.label} ${index}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <img src={image} alt={`${props.label} ${index}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </Box>
       ))}
     </Box>

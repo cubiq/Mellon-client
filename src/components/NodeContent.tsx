@@ -224,6 +224,10 @@ function getFieldType(display: string, dataType: string, options: any) {
       return display === 'checkbox' || display === 'icontoggle' ? display : 'switch';
   }
 
+  if (display.startsWith('ui_')) {
+    return display;
+  }
+
   if (dataType === 'text' || display.startsWith('text')) {
     return 'textarea';
   }

@@ -11,23 +11,23 @@ export default function TextareaField(props: FieldProps) {
                 ...props.style,
             }}
             data-key={props.fieldKey}
-            className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field`}
+            className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field nodrag`}
 >
             <TextField
                 value={props.value}
+                label={props.label}
                 onChange={(e) => props.updateStore(props.fieldKey, e.target.value)}
                 size="small"
                 autoComplete="off"
                 fullWidth
                 multiline
+                minRows={3}
+                maxRows={12}
                 slotProps={{
                     inputLabel: {
                         shrink: true,
                     }
                 }}
-                minRows={3}
-                maxRows={12}
-                label={props.label}
                 sx={{
                     backgroundColor: 'background.default',
                     '& .MuiInputBase-root': {
