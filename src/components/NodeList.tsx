@@ -22,7 +22,7 @@ import TextIcon from '@mui/icons-material/TextFields';
 import CategoryIcon from '@mui/icons-material/Category';
 import WebAssetIcon from '@mui/icons-material/WebAsset';
 import PersonIcon from '@mui/icons-material/Person';
-import DeblurIcon from '@mui/icons-material/Deblur';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import FlipSharpIcon from '@mui/icons-material/FlipSharp';
 import PhotoSizeSelectLargeSharpIcon from '@mui/icons-material/PhotoSizeSelectLargeSharp';
 import ListItemIcon from "@mui/material/ListItemIcon";
@@ -88,7 +88,7 @@ function getIcon(category: string) {
     case 'loader':
         return <LocalShippingIcon sx={{ fontSize: 18 }} />;
     case 'sampler':
-        return <DeblurIcon sx={{ fontSize: 18 }} />;
+        return <DirectionsRunIcon sx={{ fontSize: 18 }} />;
     case 'embedding':
         return <FlipSharpIcon sx={{ fontSize: 18 }} />;
     case 'upscaler':

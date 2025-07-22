@@ -6,7 +6,7 @@ export default function UITextField(props: FieldProps) {
     return (
         <Box
             data-key={props.fieldKey}
-            className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field nowheel`}
+            className={`${props.hidden ? 'mellon-hidden' : ''} nowheel`}
             sx={{
                 width: '100%',
                 overflow: 'auto',

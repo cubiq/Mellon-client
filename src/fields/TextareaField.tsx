@@ -1,8 +1,11 @@
 import { FieldProps } from "../components/NodeContent";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
+import { useRef } from "react";
 
 export default function TextareaField(props: FieldProps) {
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
     return (
         <Box
             sx={{
@@ -11,9 +14,10 @@ export default function TextareaField(props: FieldProps) {
                 ...props.style,
             }}
             data-key={props.fieldKey}
-            className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field nodrag`}
->
+            className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field nodrag ${textareaRef.current && textareaRef.current.scrollHeight > textareaRef.current.clientHeight ? 'nowheel' : ''}`}
+        >
             <TextField
+                inputRef={textareaRef}
                 value={props.value}
                 label={props.label}
                 onChange={(e) => props.updateStore(props.fieldKey, e.target.value)}

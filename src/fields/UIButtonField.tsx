@@ -1,30 +1,23 @@
 import Box from "@mui/material/Box";
 import { FieldProps } from "../components/NodeContent";
 import Button from "@mui/material/Button";
-import runFieldAction from "../utils/runFieldAction";
 import CircularProgress from '@mui/material/CircularProgress';
+import fieldAction from "../utils/fieldAction";
 
 export default function UIButtonField(props: FieldProps) {
     const handleClick = async () => {
-        if (typeof props.onChange !== 'string') {
+        const action = typeof props.onChange === 'string' ? 'exec' : props.onChange?.action;
+        const data = typeof props.onChange === 'string' ? props.onChange : props.onChange?.data;
+        // ButtonField supports only exec action for now
+        if (action !== 'exec') {
             return;
         }
-
-        props.updateStore(props.fieldKey, true, 'disabled');
-        try {
-            await runFieldAction(props.nodeId, props.module, props.action, props.onChange, props.fieldKey, props.fieldOptions?.queue || false);
-        } catch (error) {
-            props.updateStore(props.fieldKey, false, 'disabled');
-        } finally {
-            if (!props.fieldOptions?.queue) {
-                props.updateStore(props.fieldKey, false, 'disabled');
-            }
-        }
+        fieldAction(props, data);
     }
     return (
         <Box
             data-key={props.fieldKey}
-            className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field nodrag`}
+            className={`${props.hidden ? 'mellon-hidden' : ''} nodrag`}
             sx={{
                 width: '100%',
                 ...props.style,

@@ -4,7 +4,7 @@ import { FieldProps } from "../components/NodeContent";
 
 import Box from "@mui/material/Box";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
-import runFieldAction from "../utils/runFieldAction";
+import fieldAction from "../utils/fieldAction";
 
 export default function SelectField(props: FieldProps) {
     const selectOptions = useMemo(() => {
@@ -21,44 +21,13 @@ export default function SelectField(props: FieldProps) {
         ));
     }, [props.options]);
 
-    const fieldsToggle = async (value: string) => {
-        if (!props.onChange) {
-            return;
-        }
-
-        if (typeof props.onChange === 'string') {
-            props.updateStore(props.fieldKey, true, 'disabled');
-            try {
-                await runFieldAction(props.nodeId, props.module, props.action, props.onChange, props.fieldKey, props.fieldOptions?.queue || false);
-            } catch (error) {
-                props.updateStore(props.fieldKey, false, 'disabled');
-            } finally {
-                if (!props.fieldOptions?.queue) {
-                    props.updateStore(props.fieldKey, false, 'disabled');
-                }
-            }
-            return;
-        }
-
-        Object.entries(props.onChange).forEach(([key, fields]: [string, any]) => {
-            if (!Array.isArray(fields)) {
-                fields = [fields];
-            }
-
-            const isHidden = key !== value;
-            fields.forEach((field: string) => {
-                props.updateStore(field, isHidden, 'hidden');
-            });
-        });
-    }
-
     const handleOnChange = (e: SelectChangeEvent<string>) => {
         props.updateStore(props.fieldKey, e.target.value);
-        fieldsToggle(e.target.value);
+        fieldAction(props, e.target.value);
     }
 
     useEffect(() => {
-        fieldsToggle(props.value);
+        fieldAction(props, props.value);
     }, []);
 
     return (
@@ -82,7 +51,11 @@ export default function SelectField(props: FieldProps) {
                 <Box sx={{
                     fontSize: 13,
                     color: 'text.secondary',
-                    pl: 1
+                    pl: 1,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '50%',
                 }}>
                     <label htmlFor={props.nodeId + '-' + props.fieldKey}>{props.label}</label>
                 </Box>
@@ -99,7 +72,7 @@ export default function SelectField(props: FieldProps) {
                         id: props.nodeId + '-' + props.fieldKey,
                     }}
                     sx={{
-                        width: '100%',
+                        flexGrow: 1,
                         borderRadius: 0.5,
                         backgroundColor: 'background.default',
                         '& .MuiNativeSelect-select': {
