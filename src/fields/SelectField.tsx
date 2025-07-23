@@ -5,6 +5,7 @@ import { FieldProps } from "../components/NodeContent";
 import Box from "@mui/material/Box";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import fieldAction from "../utils/fieldAction";
+import CircularProgress from '@mui/material/CircularProgress';
 
 export default function SelectField(props: FieldProps) {
     const selectOptions = useMemo(() => {
@@ -33,6 +34,7 @@ export default function SelectField(props: FieldProps) {
     return (
         <Box
             sx={{
+                position: 'relative',
                 width: '100%',
                 ...props.style,
             }}
@@ -108,6 +110,7 @@ export default function SelectField(props: FieldProps) {
                     {selectOptions}
                 </Select>
             </Box>
+            {props.disabled && props.fieldOptions?.loading && <CircularProgress size={16} sx={{ position: 'absolute', top: 6, right: 6, backgroundColor: 'background.default' }} />}
         </Box>
     )
 }

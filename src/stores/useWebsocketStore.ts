@@ -221,6 +221,11 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                         console.warn('The node is no longer in the node registry');
                         return;
                     }
+
+                    Object.keys(message.params).forEach((key: string) => {
+                        message.params[key].value = message.params[key].value ?? message.params[key].default;
+                    });
+
                     const newParams = { ...defaultDef.params, ...message.params };
                     Object.keys(defaultDef.params).forEach(key => {
                         if (key in node.data.params) {

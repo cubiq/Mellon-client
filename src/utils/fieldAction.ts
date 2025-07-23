@@ -19,6 +19,25 @@ export default async function fieldAction(props: FieldProps, value: any) {
         action = props.onChange.action;
         data = props.onChange.data;
     }
+
+    if (props.fieldType === 'input' && props.isConnected && props.onChange?.condition) {
+        // follow the edge connection to get the output type
+        console.log(props.nodeId, props.fieldKey);
+        const edge = useFlowStore.getState().edges.find(e => e.target === props.nodeId && e.targetHandle === props.fieldKey);
+        console.log(edge);
+        if (edge && edge.targetHandle) {
+            const sourceNode = useFlowStore.getState().nodes.find(n => n.id === edge.source);
+            if (sourceNode) {
+                const sourceField = sourceNode.data.params[edge.sourceHandle as string];
+                if (sourceField) {
+                    console.log(sourceField.type, props.onChange.condition["type"]);
+                    if (sourceField.type === props.onChange.condition["type"]) {
+                        console.log(sourceField.type);
+                    }
+                }
+            }
+        }
+    }
     
     if (action === 'exec') {
         props.updateStore(props.fieldKey, true, 'disabled');
@@ -38,10 +57,7 @@ export default async function fieldAction(props: FieldProps, value: any) {
             }
 
             const isHidden = action === 'show' ? key !== value : key === value;
-            console.log('key:', key, 'value:', value);
-            console.log('fields:', fields);
             fields.forEach((field: string) => {
-                console.log('field:', field, 'isHidden:', isHidden);
                 props.updateStore(field, isHidden, 'hidden');
             });
         });
@@ -53,6 +69,11 @@ export default async function fieldAction(props: FieldProps, value: any) {
         }
         
         const currData = data[value] || {};
+
+        Object.keys(currData).forEach((key: string) => {
+            currData[key].value = currData[key].value ?? currData[key].default;
+        });
+
         const newParams = { ...defaultDef.params, ...currData };
         // for the default params, use the current node's params value
         Object.keys(defaultDef.params).forEach(key => {
@@ -61,6 +82,7 @@ export default async function fieldAction(props: FieldProps, value: any) {
             }
         });
         useFlowStore.getState().replaceNodeParams(props.nodeId, newParams);
+        console.log(newParams);
     } else if (action === 'value') {
         //props.updateStore(props.fieldKey, props.onChange.data, 'value');
     }
