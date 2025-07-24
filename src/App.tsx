@@ -35,7 +35,7 @@ export default function App() {
   const { connect: websocketConnect, disconnect: websocketDisconnect } = useWebsocketStore();
 
   const { enqueueSnackbar } = useSnackbar();
-  const { error: nodesStoreError, fetchNodes } = useNodesStore();
+  const { error: nodesStoreError, fetchRegistry } = useNodesStore();
   const activePanelRef = useRef<'left' | 'right' | null>(null);
 
   const handlePanelResize = useCallback((e: MouseEvent) => {
@@ -80,8 +80,8 @@ export default function App() {
 
   // Fetch nodes from API server
   useEffect(() => {
-    fetchNodes();
-  }, [fetchNodes]);
+    fetchRegistry();
+  }, [fetchRegistry]);
 
   // Connect to websocket server
   useEffect(() => {

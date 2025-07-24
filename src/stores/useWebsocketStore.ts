@@ -254,6 +254,10 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                         useFlowStore.getState().setParam(message.node, key, values[key], 'value');
                     });
                     break;
+                case 'hf_cache_update':
+                    useNodesStore.getState().fetchHfCache();
+                    console.info('HF cache updated');
+                    break;
                 default:
                     console.warn('Unknown websocket message type', message.type);
                     break;

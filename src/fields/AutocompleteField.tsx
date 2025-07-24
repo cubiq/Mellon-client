@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FieldProps } from "../components/NodeContent";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -7,16 +7,35 @@ import Autocomplete from "@mui/material/Autocomplete";
 import IconButton from "@mui/material/IconButton";
 import FolderIcon from "@mui/icons-material/Folder";
 import InputBase from "@mui/material/InputBase";
+import { useNodesStore } from "../stores/useNodeStore";
 
 export default function AutocompleteField(props: FieldProps) {
     const [isFocused, setIsFocused] = useState(false);
+    const [options, setOptions] = useState<string[]>([]);
+    const { hfCache } = useNodesStore.getState();
 
     //const optionKey = props.fieldOptions?.optionKey;
     const optionLabel = props.fieldOptions?.optionLabel;
+    // TODO: might be worth to use a memoized function to get the options
+    const getOptions = () => {
+        let options = props.options as string[] ?? [];
+        if (props.optionsSource?.source === 'hf_cache') {
+            const className = Array.isArray(props.optionsSource?.filter?.className) ? props.optionsSource?.filter?.className : [props.optionsSource?.filter?.className];
+            if (className.length > 0) {
+                const hfOptions = hfCache
+                    .filter((item) => Array.isArray(item.class_names) && item.class_names.some((name: string) => className.includes(name)))
+                    .map((item) => item.id);
+                options = Array.from(new Set([...options, ...hfOptions]));
+            }
+        }
 
-    // const selectedValue = useMemo(() => {
-    //     return (optionKey ? props.options.find((option: any) => option[optionKey] === props.value) : props.value) ?? ''
-    // }, [props.options, props.value, optionKey]);
+        return options;
+    }
+
+    //const options = useMemo(() => getOptions(), [props.optionsSource]);
+    useEffect(() => {
+        setOptions(getOptions());
+    }, [hfCache]);
 
     return (
         <Box
@@ -51,10 +70,18 @@ export default function AutocompleteField(props: FieldProps) {
                 </Box>
                 <Autocomplete
                     disablePortal={false}
+                    //clearOnBlur
+                    //selectOnFocus
+                    handleHomeEndKeys
                     freeSolo={props.fieldOptions?.noValidation ?? false}
-                    options={props.options as string[] ?? []}
+                    options={options}
                     //filterOptions={(options) => options}
-                    getOptionLabel={optionLabel ? (option) => option[optionLabel] ?? '' : undefined}
+                    getOptionLabel={(option) => {
+                        if (typeof option === 'string') {
+                            return option;
+                        }
+                        return optionLabel ? option[optionLabel] ?? '' : '';
+                    }}
                     //getOptionKey={optionKey ? (option) => option[optionKey] ?? '' : undefined}
                     title={optionLabel && props.value ? props.value[optionLabel] : props.value}
                     id={props.nodeId + '-' + props.fieldKey}

@@ -20,23 +20,20 @@ export default async function fieldAction(props: FieldProps, value: any) {
         data = props.onChange.data;
     }
 
-    if (props.fieldType === 'input' && props.isConnected && props.onChange?.condition) {
+    function getSourceHandleType() {
         // follow the edge connection to get the output type
-        console.log(props.nodeId, props.fieldKey);
         const edge = useFlowStore.getState().edges.find(e => e.target === props.nodeId && e.targetHandle === props.fieldKey);
-        console.log(edge);
-        if (edge && edge.targetHandle) {
+        if (edge && edge.sourceHandle) {
             const sourceNode = useFlowStore.getState().nodes.find(n => n.id === edge.source);
             if (sourceNode) {
-                const sourceField = sourceNode.data.params[edge.sourceHandle as string];
+                const sourceField = sourceNode.data.params[edge.sourceHandle];
                 if (sourceField) {
-                    console.log(sourceField.type, props.onChange.condition["type"]);
-                    if (sourceField.type === props.onChange.condition["type"]) {
-                        console.log(sourceField.type);
-                    }
+                    return sourceField.type;
                 }
             }
         }
+
+        return null;
     }
     
     if (action === 'exec') {
@@ -54,6 +51,10 @@ export default async function fieldAction(props: FieldProps, value: any) {
         Object.entries(data).forEach(([key, fields]: [string, any]) => {
             if (!Array.isArray(fields)) {
                 fields = [fields];
+            }
+
+            if (props.fieldType === 'input' && props.isConnected && props.onChange.condition && props.onChange.condition["type"] !== getSourceHandleType()) {
+                value = value === 'true' ? 'false' : 'true';
             }
 
             const isHidden = action === 'show' ? key !== value : key === value;
@@ -82,7 +83,6 @@ export default async function fieldAction(props: FieldProps, value: any) {
             }
         });
         useFlowStore.getState().replaceNodeParams(props.nodeId, newParams);
-        console.log(newParams);
     } else if (action === 'value') {
         //props.updateStore(props.fieldKey, props.onChange.data, 'value');
     }

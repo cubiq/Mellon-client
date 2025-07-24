@@ -159,6 +159,12 @@ export const useFlowStore = create<FlowStore>()(
             if (isReplace) {
                 // remove replaced edges
                 get().removeEdges(edgesToRemove.map(edge => edge.id));
+
+                // Ensure the isConnected is updated for the replaced edges
+                setTimeout(() => {
+                    get().onConnect(conn);
+                }, 0);
+                return;
             }
             
             const sourceNode = get().nodes.find(n => n.id === conn.source);

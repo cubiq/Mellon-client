@@ -30,6 +30,7 @@ export type FieldProps = {
   value: any;
   default: any;
   options: any[] | Record<string | number | symbol, any>;
+  optionsSource?: Record<string, any>;
   dataType: string;
   fieldType: string;
   updateStore: (param: string, value: any, key?: keyof NodeParams) => void;
@@ -89,6 +90,7 @@ const NodeContent = ({
       max: data.max,
       step: data.step,
       fieldOptions: data.fieldOptions || {},
+      optionsSource: data.optionsSource || {},
     };
 
     return { key, props };

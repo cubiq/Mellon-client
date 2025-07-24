@@ -31,6 +31,7 @@ export type NodeParams = {
     isConnected?: boolean;
     spawn?: boolean;
     options?: any[] | Record<string | number | symbol, any>;
+    optionsSource?: Record<string, any>;
     min?: number;
     max?: number;
     step?: number;
@@ -45,15 +46,19 @@ type NodesStore = {
     isLoading: boolean
     instance: string
     error: string | null
+    hfCache: any[]
     fetchNodes: () => Promise<void>
+    fetchHfCache: () => Promise<void>
+    fetchRegistry: () => Promise<void>
 }
 
-export const useNodesStore = create<NodesStore>()((set) => ({
+export const useNodesStore = create<NodesStore>()((set, get) => ({
     nodesRegistry: {},
     isLoading: false,
     instance: '',
     error: null,
-    
+    hfCache: [],
+
     fetchNodes: async () => {
         set({ isLoading: true, error: null })
         try {
@@ -66,4 +71,25 @@ export const useNodesStore = create<NodesStore>()((set) => ({
             //console.error(error)
         }
     },
+
+    fetchHfCache: async () => {
+        if (get().error) {
+            return
+        }
+        set({ isLoading: true, error: null })
+        try {
+            const response = await fetch(`${config.serverAddress}/hf_cache?compact=true`, {
+                method: 'GET',
+            })
+            const data = await response.json()
+            set({ hfCache: data, isLoading: false })
+        } catch (error) {
+            set({ error: 'Error fetching Hugging Face cache. Check if the server is running and try to reload the page.', isLoading: false })
+        }
+    },
+
+    fetchRegistry: async () => {
+        await get().fetchNodes()
+        await get().fetchHfCache()
+    }
 }))

@@ -415,7 +415,7 @@ function Workflow() {
       return;
     }
 
-    // if we dropped the handle on the workflow pane, open the node search dialog applying the input type as filter
+    // if we dropped the connection on the workflow pane, open the node search dialog applying the input type as filter
     if (!conn.isValid && conn.toHandle === null) {
       if (handleDropOnPane(event, conn)) {
         return;
