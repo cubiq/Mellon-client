@@ -80,6 +80,10 @@ You can send custom values from the `MODULE_MAP` on the server to the custom fie
 
 Custom fields are dynamically loaded and are not as performant as default fields. If the field is generic enough consider adding it the core components and send a PR.
 
+## Dev notes
+
+Not sure why yet but Firefox seems to handle Vite development enviroment better than Chrome, especially in the websocket connection. I'll check if that can be improved but at the moment I suggest to use Firefox for development.
+
 ## Contact
 
 At this stage the best way to contact me regarding the project is via [X/Twitter](https://x.com/cubiq) or [discord](https://latent.vision/discord).

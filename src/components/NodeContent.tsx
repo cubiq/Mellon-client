@@ -14,10 +14,12 @@ import AutocompleteField from '../fields/AutocompleteField';
 import TextareaField from '../fields/TextareaField';
 import RadioField from '../fields/RadioField';
 import NumberField from '../fields/NumberField';
+import RangeField from '../fields/RangeField';
 
 import UITextField from '../fields/UITextField';
 import UIImageField from '../fields/UIImageField';
 import UIButtonField from '../fields/UIButtonField';
+import UILabelFieldField from '../fields/UILabelField';
 
 export type FieldProps = {
   nodeId: string;
@@ -191,14 +193,18 @@ const FieldMemo = memo((props: FieldProps) => {
       return <AutocompleteField {...props} />;
     case 'textarea':
       return <TextareaField {...props} />;
+    case 'radio':
+      return <RadioField {...props} />;
+    case 'range':
+      return <RangeField {...props} />;
     case 'ui_text':
       return <UITextField {...props} />;
     case 'ui_image':
       return <UIImageField {...props} />;
     case 'ui_button':
       return <UIButtonField {...props} />;
-    case 'radio':
-      return <RadioField {...props} />;
+    case 'ui_label':
+      return <UILabelFieldField {...props} />;
     case 'default':
     case 'string':
     default:

@@ -6,13 +6,54 @@ import Box from "@mui/material/Box";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import fieldAction from "../utils/fieldAction";
 import CircularProgress from '@mui/material/CircularProgress';
+import MenuItem from "@mui/material/MenuItem";
+import ListItemText from "@mui/material/ListItemText";
+import Checkbox from "@mui/material/Checkbox";
+import ListSubheader from "@mui/material/ListSubheader";
+import Chip from "@mui/material/Chip";
 
 export default function SelectField(props: FieldProps) {
-    const selectOptions = useMemo(() => {
+    const fieldValue = props.fieldOptions?.multiple
+        ? !Array.isArray(props.value) ? props.value !== undefined && props.value !== null ? [props.value] : [] : props.value
+        : props.value;
+
+    const selectOptions = (() => {
         if (Array.isArray(props.options)) {
+            if (props.fieldOptions?.multiple) {
+                return [
+                    props.fieldOptions?.placeholder ?
+                    <MenuItem key="placeholder" disabled value="">
+                        <em>{props.fieldOptions?.placeholder}</em>
+                    </MenuItem> : null,
+                    ...props.options.map((option: string) => (
+                    <MenuItem key={option} value={option}>
+                        <Checkbox checked={props.value.includes(option)} />
+                        <ListItemText primary={option} />
+                    </MenuItem>
+                ))];
+            }
+
             return props.options.map((option: string) => (
                 <option key={option} value={option}>{option}</option>
             ));
+        }
+
+        if (props.fieldOptions?.multiple) {
+            return [
+                props.fieldOptions?.placeholder ?
+                <MenuItem key="placeholder" disabled value="">
+                    {props.fieldOptions?.placeholder}
+                </MenuItem> : null,
+                ...Object.entries(props.options).map(([k, v]) => (
+                k.startsWith('__') ? 
+                <ListSubheader key={k} sx={{ px: 2, py: 1.5, lineHeight: 1 }}>
+                    {typeof v === 'object' ? v.label || v.name || v.title : v}
+                </ListSubheader> :
+                <MenuItem key={k} value={k} sx={{ p: 0 }}>
+                    <Checkbox checked={fieldValue.includes(k)} size="small" />
+                    <ListItemText primary={typeof v === 'object' ? v.label || v.name || v.title : v} />
+                </MenuItem>
+            ))];
         }
 
         return Object.entries(props.options).map(([key, value]) => (
@@ -20,7 +61,7 @@ export default function SelectField(props: FieldProps) {
                 {typeof value === 'object' ? value.label || value.name || value.title : value}
             </option>
         ));
-    }, [props.options]);
+    })();
 
     const handleOnChange = (e: SelectChangeEvent<string>) => {
         props.updateStore(props.fieldKey, e.target.value);
@@ -58,18 +99,43 @@ export default function SelectField(props: FieldProps) {
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     maxWidth: '50%',
+                    minWidth: 56,
                 }}>
                     <label htmlFor={props.nodeId + '-' + props.fieldKey}>{props.label}</label>
                 </Box>
                 <Select
-                    value={props.value}
+                    multiple={!!props.fieldOptions?.multiple}
+                    value={fieldValue}
                     label={props.label}
+                    displayEmpty={!!props.fieldOptions?.placeholder}
                     onChange={handleOnChange}
                     size="small"
                     autoComplete="off"
                     variant="standard"
-                    native
+                    native={!props.fieldOptions?.multiple}
                     className="nodrag"
+                    renderValue={props.fieldOptions?.multiple && ((selected: string[]) => {
+                        if (props.fieldOptions?.placeholder && selected.length === 0) {
+                            return props.fieldOptions.placeholder;
+                        }
+
+                        return (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {selected.map((v: string) => {
+                                let label: string = '';
+                                if (!Array.isArray(props.options) && typeof props.options === 'object') {
+                                    const opt = props.options[v];
+                                    label = typeof opt === 'object' ? opt?.label || opt?.name || opt?.title || '' : String(opt);
+                                } else if (Array.isArray(props.options)) {
+                                    label = String(v);
+                                }
+                                return (
+                                    <Chip key={v} label={label} size="small" sx={{ backgroundColor: 'secondary.main', borderRadius: 0.5 }} />
+                                );
+                            })}
+                            </Box>
+                        );
+                    })}
                     inputProps={{
                         id: props.nodeId + '-' + props.fieldKey,
                     }}
@@ -104,6 +170,14 @@ export default function SelectField(props: FieldProps) {
                         },
                         '&.Mui-focused::before': {
                             border: 'none',
+                        },
+                        '& .MuiSelect-select': {
+                            fontSize: 14,
+                            py: 0.5, px: 1,
+                            m: 0,
+                            '&>.MuiBox-root': {
+                                maxWidth: '560px',
+                            },
                         },
                     }}
                 >

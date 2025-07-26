@@ -53,11 +53,15 @@ export default async function fieldAction(props: FieldProps, value: any) {
                 fields = [fields];
             }
 
+            // special case for input fields, if a node is created with the handle already connected
             if (props.fieldType === 'input' && props.isConnected && props.onChange.condition && props.onChange.condition["type"] !== getSourceHandleType()) {
                 value = value === 'true' ? 'false' : 'true';
             }
 
-            const isHidden = action === 'show' ? key !== value : key === value;
+            value = !Array.isArray(value) ? [value] : value;
+            const isHidden = action === 'show' ? !value.includes(key) : value.includes(key);
+
+            //const isHidden = action === 'show' ? key !== value : key === value;
             fields.forEach((field: string) => {
                 props.updateStore(field, isHidden, 'hidden');
             });

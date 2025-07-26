@@ -41,7 +41,7 @@ export default function InputField(props: FieldProps) {
                     <Typography sx={{ fontSize: 13, color: 'text.secondary', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }} title={props.label}>{props.label}</Typography>
                 </Box>
                 <InputBase
-                    value={props.value}
+                    value={props.value || ''}
                     onChange={(e) => props.updateStore(props.fieldKey, e.target.value)}
                     size="small"
                     autoComplete="off"
