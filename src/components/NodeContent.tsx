@@ -15,6 +15,7 @@ import TextareaField from '../fields/TextareaField';
 import RadioField from '../fields/RadioField';
 import NumberField from '../fields/NumberField';
 import RangeField from '../fields/RangeField';
+import SplineField from '../fields/SplineField';
 
 import UITextField from '../fields/UITextField';
 import UIImageField from '../fields/UIImageField';
@@ -197,6 +198,8 @@ const FieldMemo = memo((props: FieldProps) => {
       return <RadioField {...props} />;
     case 'range':
       return <RangeField {...props} />;
+    case 'spline':
+      return <SplineField {...props} />;
     case 'ui_text':
       return <UITextField {...props} />;
     case 'ui_image':

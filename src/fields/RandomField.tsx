@@ -8,7 +8,7 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 export default function RandomField(props: FieldProps) {
     const fieldValue = typeof props.value === 'object' && 'value' in props.value
-        ? props.value.value
+        ? props.value.value || 0
         : props.value || 0;
     const isRandom = typeof props.value === 'object' && 'isRandom' in props.value
         ? props.value.isRandom
@@ -19,7 +19,7 @@ export default function RandomField(props: FieldProps) {
     }
 
     const handleFieldChange = (key: string, value: any) => {
-        props.updateStore(key, { value: value, isRandom });
+        props.updateStore(key, { value, isRandom });
     }
 
     return (
@@ -28,7 +28,7 @@ export default function RandomField(props: FieldProps) {
                 width: '100%',
                 ...props.style,
             }}
-            data-key={props.fieldKey}
+            data-key={`${props.fieldKey}-random`}
             className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field`}
         >
             <Stack
@@ -43,7 +43,7 @@ export default function RandomField(props: FieldProps) {
                     {...props}
                     value={fieldValue}
                     disabled={isRandom}
-                    onChange={handleFieldChange}
+                    updateStore={handleFieldChange}
                 />
                 <IconButton
                     size="small"
