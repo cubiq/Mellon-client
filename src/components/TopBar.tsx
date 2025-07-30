@@ -32,6 +32,7 @@ import GetAppIcon from '@mui/icons-material/GetApp';
 import SettingsIcon from '@mui/icons-material/Settings';
 import StopIcon from '@mui/icons-material/Stop';
 import CircularProgress from '@mui/material/CircularProgress';
+import BuildIcon from '@mui/icons-material/Build';
 
 const executeOptions = [
   {
@@ -58,6 +59,7 @@ function TopBar() {
   const { setViewport } = useReactFlow();
   const clearWorkflow = useFlowStore(state => state.clearWorkflow);
   const toObject = useFlowStore(state => state.toObject);
+  const exportGraph = useFlowStore(state => state.exportGraph);
 
   const handleExecuteMenuClick = () => {
     setExecuteButtonOpen(!executeButtonOpen);
@@ -99,6 +101,24 @@ function TopBar() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, [toObject]);
+
+  const handleApiExportClick = () => {
+    if (!sid) {
+      console.error('No session ID found');
+      return;
+    }
+
+    const graph = exportGraph(sid);
+    const graphJson = JSON.stringify(graph);
+    const blob = new Blob([graphJson], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'api_graph.json';
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   const handleExecuteClick = async () => {
     if (!sid) {
@@ -175,6 +195,15 @@ function TopBar() {
           onClick={handleExportClick}
         >
           Export
+        </Button>
+        <Button
+          variant='text'
+          size='small'
+          startIcon={<BuildIcon />}
+          sx={{ ml: 1 }}
+          onClick={handleApiExportClick}
+        >
+          API Graph
         </Button>
       </Box>
       {/* Actions */}
