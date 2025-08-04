@@ -1,41 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FieldProps } from "../components/NodeContent";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Autocomplete from "@mui/material/Autocomplete";
-import IconButton from "@mui/material/IconButton";
-import FolderIcon from "@mui/icons-material/Folder";
 import InputBase from "@mui/material/InputBase";
-import { useNodesStore } from "../stores/useNodeStore";
+import { useStore } from '@xyflow/react';
 
 export default function AutocompleteField(props: FieldProps) {
-    const [isFocused, setIsFocused] = useState(false);
-    const [options, setOptions] = useState<string[]>([]);
-    const { hfCache } = useNodesStore.getState();
+    const zoomLevel = useStore((store) => store.transform[2]);
 
-    //const optionKey = props.fieldOptions?.optionKey;
+    const [isFocused, setIsFocused] = useState(false);
+    const options = props.options as string[] | {}[] || [];
+
+    const freeSolo = props.fieldOptions?.noValidation ?? false;
+    const optionKey = props.fieldOptions?.optionKey;
     const optionLabel = props.fieldOptions?.optionLabel;
-    // TODO: might be worth to use a memoized function to get the options
-    const getOptions = () => {
-        let options = props.options as string[] ?? [];
-        if (props.optionsSource?.source === 'hf_cache') {
-            const className = Array.isArray(props.optionsSource?.filter?.className) ? props.optionsSource?.filter?.className : [props.optionsSource?.filter?.className];
-            if (className.length > 0) {
-                const hfOptions = hfCache
-                    .filter((item) => Array.isArray(item.class_names) && item.class_names.some((name: string) => className.includes(name)))
-                    .map((item) => item.id);
-                options = Array.from(new Set([...options, ...hfOptions]));
-            }
+
+    const handleOnChange = (_: React.SyntheticEvent, value: any) => {
+        if (typeof value === 'object' && value !== null) {
+            if (optionKey && optionKey in value) value = value[optionKey];
+            if ('key' in value) value = value.key;
+            if ('id' in value) value = value.id;
+            return value.value || '';
         }
 
-        return options;
+        props.updateStore(props.fieldKey, value);
     }
-
-    //const options = useMemo(() => getOptions(), [props.optionsSource]);
-    useEffect(() => {
-        setOptions(getOptions());
-    }, [hfCache]);
 
     return (
         <Box
@@ -55,7 +46,7 @@ export default function AutocompleteField(props: FieldProps) {
                     width: '100%',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    overflow: 'hidden',
+                    //overflow: 'hidden',
                     backgroundColor: 'background.default',
                     px: 1,
                     py: 0.5,
@@ -71,18 +62,30 @@ export default function AutocompleteField(props: FieldProps) {
                 <Autocomplete
                     disablePortal={false}
                     //clearOnBlur
-                    //selectOnFocus
-                    handleHomeEndKeys
-                    freeSolo={props.fieldOptions?.noValidation ?? false}
+                    selectOnFocus
+                    handleHomeEndKeys={!freeSolo}
+                    freeSolo={freeSolo}
                     options={options}
-                    //filterOptions={(options) => options}
+                    //slotProps={{ popper: CustomPopper }}
                     getOptionLabel={(option) => {
                         if (typeof option === 'string') {
                             return option;
                         }
                         return optionLabel ? option[optionLabel] ?? '' : '';
                     }}
-                    //getOptionKey={optionKey ? (option) => option[optionKey] ?? '' : undefined}
+                    // getOptionKey={(option) => {
+                    //     if (typeof option === 'string') {
+                    //         return option;
+                    //     }
+                    //     if (optionKey && optionKey in option) 
+                    //         return option[optionKey];
+                    //     if ('key' in option)
+                    //         return option.key;
+                    //     if ('id' in option)
+                    //         return option.id;
+                        
+                    //     return option.value || '';
+                    // }}
                     title={optionLabel && props.value ? props.value[optionLabel] : props.value}
                     id={props.nodeId + '-' + props.fieldKey}
                     renderInput={(params: any) => {
@@ -105,37 +108,33 @@ export default function AutocompleteField(props: FieldProps) {
                             />
                         );
                     }}
-                    onChange={(_, value) => props.updateStore(props.fieldKey, value)}
+                    onChange={!freeSolo ? (_, value) => handleOnChange(_, value) : undefined}
+                    onInputChange={freeSolo ? (_, value) => handleOnChange(_, value) : undefined}
                     value={props.value ?? ''}
                     size="small"
                     className="nodrag"
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    sx={{
-                        width: '100%',
-                        //display: 'inline-block',
-                        flexGrow: 1,
-                        // '& input': {
-                        //     p: 0,
-                        //     m: 0,
-                        //     fontSize: 14,
-                        //     backgroundColor: 'background.default',
-                        //     color: 'text.primary',
-                        //     width: '100%',
-                        //     border: 'none',
-                        //     outline: 'none',
-                        //     fontFamily: 'inherit',
-                        // },
-                        '&+.MuiAutocomplete-popper .MuiAutocomplete-option': {
-                            fontSize: '12px',
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                transform: `scale(${zoomLevel})`,
+                                transformOrigin: 'top',
+                                fontSize: '12px',
+                                borderRadius: 0.5,
+                                backgroundColor: 'secondary.dark',
+                                lineHeight: 1.25,
+                                '& .MuiAutocomplete-option': {
+                                    px: 1,
+                                    py: 0.75,
+                                },
+                            },
                         },
                     }}
+                    sx={{
+                        width: '100%',
+                    }}
                 />
-                {false &&props.fieldOptions?.model_loader && (
-                    <IconButton size="small" sx={{ p: 0, color: 'text.secondary' }}>
-                        <FolderIcon />
-                    </IconButton>
-                )}
             </Stack>
         </Box>
     );

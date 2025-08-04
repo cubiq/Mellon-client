@@ -568,14 +568,18 @@ function Workflow() {
         opener={fileBrowserOpener}
         onClose={() => { setFileBrowserOpener(null); }}
       />
-      <ModelManagerDialog
-        opener={modelManagerOpener}
-        onClose={() => { setModelManagerOpener(null); }}
-      />
-      <SettingsDialog
-        opener={settingsOpener}
-        onClose={() => { setSettingsOpener(null); }}
-      />
+      {modelManagerOpener && (
+        <ModelManagerDialog
+          opener={modelManagerOpener}
+          onClose={() => { setModelManagerOpener(null); }}
+        />
+      )}
+      {settingsOpener && (
+        <SettingsDialog
+          opener={settingsOpener}
+          onClose={() => { setSettingsOpener(null); }}
+        />
+      )}
       <AlertDialog
         opener={alertOpener}
         onClose={() => { setAlertOpener(null); }}

@@ -122,7 +122,9 @@ function NodeGroupList({ nodes, groupBy, search }: {
 
   return (
     <>
-      {Object.entries(groups).map(([group, nodes]) => (
+      {Object.entries(groups)
+      .sort(([a], [b]) => a.substring(a.indexOf('.')+1).localeCompare(b.substring(b.indexOf('.')+1)))
+      .map(([group, nodes]) => (
         <Accordion
           key={group}
           expanded={activeNodeGroups.includes(group)}
@@ -141,7 +143,9 @@ function NodeGroupList({ nodes, groupBy, search }: {
           </AccordionSummary>
           <AccordionDetails>
             <List dense sx={{ p: 0 }}>
-              {nodes.map((node) => (
+              {[...nodes]
+                .sort((a, b) => a.label.localeCompare(b.label))
+                .map((node) => (
                 <ListItem
                   key={`${node.module}.${node.action}`}
                   onDragStart={(e) => {

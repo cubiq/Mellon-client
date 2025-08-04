@@ -234,5 +234,5 @@ createRoot(document.getElementById('root')!).render(
         </WebsocketProvider>
       </SnackbarProvider>
     </ThemeProvider>
-  </StrictMode>,
+  </StrictMode>
 )

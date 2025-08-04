@@ -47,8 +47,10 @@ type NodesStore = {
     instance: string
     error: string | null
     hfCache: any[]
+    localModels: any[]
     fetchNodes: () => Promise<void>
-    fetchHfCache: () => Promise<void>
+    fetchHfCache: (refresh?: boolean) => Promise<void>
+    fetchLocalModels: (refresh?: boolean) => Promise<void>
     fetchRegistry: () => Promise<void>
 }
 
@@ -58,7 +60,7 @@ export const useNodesStore = create<NodesStore>()((set, get) => ({
     instance: '',
     error: null,
     hfCache: [],
-
+    localModels: [],
     fetchNodes: async () => {
         set({ isLoading: true, error: null })
         try {
@@ -72,13 +74,13 @@ export const useNodesStore = create<NodesStore>()((set, get) => ({
         }
     },
 
-    fetchHfCache: async () => {
+    fetchHfCache: async (refresh: boolean = false) => {
         if (get().error) {
             return
         }
         set({ isLoading: true, error: null })
         try {
-            const response = await fetch(`${config.serverAddress}/hf_cache?compact=true`, {
+            const response = await fetch(`${config.serverAddress}/hf_cache?compact=1&refresh=${refresh}`, {
                 method: 'GET',
             })
             const data = await response.json()
@@ -88,8 +90,25 @@ export const useNodesStore = create<NodesStore>()((set, get) => ({
         }
     },
 
+    fetchLocalModels: async (refresh: boolean = false) => {
+        if (get().error) {
+            return
+        }
+        set({ isLoading: true, error: null })
+        try {
+            const response = await fetch(`${config.serverAddress}/local_models?refresh=${refresh}`, {
+                method: 'GET',
+            })
+            const data = await response.json()
+            set({ localModels: data, isLoading: false })
+        } catch (error) {
+            set({ error: 'Error getting the list of local models. Check if the server is running and try to reload the page.', isLoading: false })
+        }
+    },
+
     fetchRegistry: async () => {
         await get().fetchNodes()
+        await get().fetchLocalModels()
         await get().fetchHfCache()
     }
 }))

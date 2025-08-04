@@ -98,7 +98,7 @@ function TopBar() {
     a.href = url;
     a.download = 'graph.json';
     a.click();
-    document.body.removeChild(a);
+    //document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, [toObject]);
 
@@ -116,7 +116,7 @@ function TopBar() {
     a.href = url;
     a.download = 'api_graph.json';
     a.click();
-    document.body.removeChild(a);
+    //document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
 

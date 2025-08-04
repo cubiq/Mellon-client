@@ -158,7 +158,7 @@ function ModelManagerDialog({
 
     useEffect(() => {
         fetchHfCache();
-    }, [fetchHfCache, cacheSearch, hfCache]);
+    }, [fetchHfCache]);
 
 
     function formatTitle(id: string) {

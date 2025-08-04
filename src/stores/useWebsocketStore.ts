@@ -13,12 +13,14 @@ export type WebsocketState ={
     sid: string | null;
     ws: WebSocket | null;
     isConnected: boolean;
+    isConnecting: boolean;
     connectionTimer: NodeJS.Timeout | undefined;
     loopTimer: NodeJS.Timeout | undefined;
     reconnectAttempts: number;
 
     connect: () => void;
     disconnect: () => void;
+    send: (message: any) => void;
 }
 
 export const useWebsocketStore = create<WebsocketState>((set, get) => ({
@@ -26,11 +28,18 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
     sid: null,
     ws: null,
     isConnected: false,
+    isConnecting: false,
     connectionTimer: undefined,
     loopTimer: undefined,
     reconnectAttempts: 0,
 
     connect: async () => {
+        if (get().isConnecting) {
+            console.info('Already connecting to websocket');
+            return;
+        }
+        set({ isConnecting: true });
+
         const timeout = get().connectionTimer;
         const loopTimer = get().loopTimer;
         if (timeout) {
@@ -43,12 +52,14 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
         }
 
         const curr_ws = get().ws;
-        if (curr_ws && curr_ws.readyState !== WebSocket.CLOSED) {
-            console.info('Websocket already connected');
-            return;
+        if (curr_ws && curr_ws.readyState < WebSocket.CLOSING) {
+            console.warn('Closing existing websocket before creating a new one');
+            curr_ws.onclose = null;
+            curr_ws.close();
+            set({ sid: null, ws: null, isConnected: false });
         }
 
-        const sid = get().sid || nanoid(10);
+        const sid = nanoid(10);
         const address = get().address || config.serverAddress.replace('http', 'ws');
         if (!address) {
             console.error('Cannot connect to websocket: No address provided');
@@ -70,12 +81,12 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                 clearTimeout(loopTimer);
                 set({ loopTimer: undefined });
             }
-            set({ isConnected: true, reconnectAttempts: 0 });
+            set({ isConnected: true, isConnecting: false, reconnectAttempts: 0 });
             console.info('Websocket connected');
         }
 
         ws.onclose = () => {
-            set({ ws: null, isConnected: false, connectionTimer: undefined });
+            set({ sid: null, ws: null, isConnected: false, isConnecting: false, connectionTimer: undefined });
             console.info('Websocket disconnected');
             // clear cache status
             useFlowStore.getState().updateCacheStatus([]);
@@ -258,6 +269,10 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                     useNodesStore.getState().fetchHfCache();
                     console.info('HF cache updated');
                     break;
+                case 'local_cache_update':
+                    useNodesStore.getState().fetchLocalModels();
+                    console.info('Local cache updated');
+                    break;
                 default:
                     console.warn('Unknown websocket message type', message.type);
                     break;
@@ -280,12 +295,23 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                 state.ws.close();
             }
             return {
+                sid: null,
                 ws: null,
                 isConnected: false,
+                isConnecting: false,
                 connectionTimer: undefined,
                 loopTimer: undefined,
                 reconnectAttempts: 0
             };
         });
     },
+
+    send: (message: any) => {
+        const ws = get().ws;
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            console.error('Websocket is not ready, cannot send message');
+            return;
+        }
+        ws.send(JSON.stringify(message));
+    }
 }));

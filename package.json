@@ -1,5 +1,5 @@
 {
-  "name": "Mellon-client",
+  "name": "mellon-client",
   "private": true,
   "version": "0.2.0",
   "type": "module",
@@ -20,7 +20,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-virtuoso": "^4.13.0",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
