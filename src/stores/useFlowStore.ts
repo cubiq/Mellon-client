@@ -42,6 +42,7 @@ export type FlowStore = {
     clearWorkflow: () => void;
     getParam: (id: string, param: string, key: keyof NodeParams) => any;
     setParam: (id: string, param: string, value: any, key?: keyof NodeParams) => void;
+    setNodeSize: (id: string, width: number, height: number) => void;
     getNodeParamsValues: (id: string) => Record<string, any>;
     replaceNodeParams: (id: string, params: Partial<NodeParams>) => void;
     setAllEdgesType: (edgeType: 'default' | 'smoothstep') => void;
@@ -292,6 +293,15 @@ export const useFlowStore = create<FlowStore>()(
                 });
 
                 return { nodes: updatedNodes };
+            });
+        },
+        setNodeSize: (id: string, width: number, height: number) => {
+            set((state) => {
+                const node = state.nodes.find(n => n.id === id);
+                if (!node) return state;
+                return {
+                    nodes: state.nodes.map(n => n.id === id ? { ...n, width, height } : n)
+                };
             });
         },
         getNodeParamsValues: (id: string) => {

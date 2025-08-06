@@ -13,6 +13,40 @@ import '@xyflow/react/dist/base.css';
 import './App.css'
 import Button from '@mui/material/Button';
 
+export const categoryColors: Record<string, string> = {
+  default: '#1a1a1a',
+  primitive: '#1a1a1a',
+  image: '#215fa0',
+  latent: '#215fa0',
+  text: '#357288',
+  string: '#357288',
+  sampler: '#ac2053',
+  pipeline: '#ac2053',
+  FluxTransformer2DModel: '#d512e7ff',
+  embedding: '#ddab2c',
+  SD3TextEncoders: '#8e089b',
+  FluxTextEncoders: '#8e089b',
+  T5EncoderModel: '#8e089b',
+  loader: '#0c8b47',
+  upscaler: '#584caa',
+  image_filter: '#008c8c',
+};
+
+export function generateCategoryStyles() {
+  const styles: Record<string, any> = {};
+
+  Object.entries(categoryColors).forEach(([category, color]) => {
+    styles[`.react-flow__edge.category-${category} .react-flow__edge-path, .react-flow__edge.selected.category-${category} .react-flow__edge-path`] = { stroke: color };
+    styles[`li.category-${category}, .category-${category}>header, .react-flow__node.selected>.category-${category}`] = {
+      borderColor: color,
+      outlineColor: color,
+    };
+    styles[`.react-flow__handle.${category}-handle`] = { backgroundColor: color };
+  });
+
+  return styles;
+}
+
 const theme = createTheme({
   palette: {
     mode: 'dark',
@@ -106,109 +140,7 @@ const theme = createTheme({
           backgroundColor: '#aaaaaa',
           outlineColor: '#121212',
         },
-        // Default
-        '.react-flow__edge.category-default .react-flow__edge-path': {
-          stroke: '#1a1a1a',
-        },
-        'li.category-default, .category-default>header, .react-flow__node.selected>.category-default': {
-          borderColor: 'rgb(100, 100, 100)',
-          outlineColor: 'rgb(100, 100, 100)',
-        },
-        '.react-flow__handle.default-handle': {
-          backgroundColor: '#1a1a1a',
-        },
-        // Primitive
-        '.react-flow__edge.category-primitive .react-flow__edge-path': {
-          stroke: '#1a1a1a',
-        },
-        'li.category-primitive, .category-primitive>header, .react-flow__node.selected>.category-primitive': {
-          borderColor: 'rgb(100, 100, 100)',
-          outlineColor: 'rgb(100, 100, 100)',
-        },
-        '.react-flow__handle.primitive-handle': {
-          backgroundColor: '#1a1a1a',
-        },
-        // Image
-        '.react-flow__edge.category-image path, .react-flow__edge.category-latent path': {
-          stroke: '#215fa0',
-        },
-        'li.category-image, .category-image>header, .react-flow__node.selected>.category-image': {
-          borderColor: 'rgb(21, 95, 160)',
-          outlineColor: 'rgb(21, 95, 160)',
-        },
-        'li.category-latent, .category-latent>header, .react-flow__node.selected>.category-latent': {
-          borderColor: 'rgb(21, 95, 160)',
-          outlineColor: 'rgb(21, 95, 160)',
-        },
-        '.react-flow__handle.image-handle, .react-flow__handle.latent-handle': {
-          backgroundColor: '#215fa0',
-        },
-        // Text
-        '.react-flow__edge.category-text path, .react-flow__edge.category-string path': {
-          stroke: '#357288',
-        },
-        'li.category-text, .category-text>header, .react-flow__node.selected>.category-text': {
-          borderColor: 'rgb(53, 114, 136)',
-          outlineColor: 'rgb(53, 114, 136)',
-        },
-        '.react-flow__handle.text-handle, .react-flow__handle.string-handle': {
-          backgroundColor: '#357288',
-        },
-        // Sampler
-        '.react-flow__edge.category-sampler .react-flow__edge-path, .react-flow__edge.category-pipeline .react-flow__edge-path': {
-          stroke: 'rgb(172, 32, 83)',
-        },
-        'li.category-sampler, .category-sampler>header, .react-flow__node.selected>.category-sampler': {
-          borderColor: 'rgb(172, 32, 83)',
-          outlineColor: 'rgb(172, 32, 83)',
-        },
-        '.react-flow__handle.sampler-handle, .react-flow__handle.pipeline-handle': {
-          backgroundColor: 'rgb(172, 32, 83)',
-        },
-        // Embedding
-        '.react-flow__edge.category-embedding .react-flow__edge-path, .react-flow__edge.category-SD3TextEncoders .react-flow__edge-path': {
-          stroke: 'rgb(221, 171, 44)',
-        },
-        'li.category-embedding, .category-embedding>header, .react-flow__node.selected>.category-embedding': {
-          borderColor: 'rgb(221, 171, 44)',
-          outlineColor: 'rgb(221, 171, 44)',
-        },
-        ".react-flow__handle.embedding-handle, .react-flow__handle.SD3TextEncoders-handle": {
-          backgroundColor: 'rgb(221, 171, 44)',
-        },
-        // Loader
-        '.react-flow__edge.category-loader .react-flow__edge-path': {
-          stroke: 'rgb(12, 139, 71)',
-        },
-        'li.category-loader, .category-loader>header, .react-flow__node.selected>.category-loader': {
-          borderColor: 'rgb(12, 139, 71)',
-          outlineColor: 'rgb(12, 139, 71)',
-        },
-        '.react-flow__handle.loader-handle': {
-          backgroundColor: 'rgb(12, 139, 71)',
-        },
-        // Upscaler
-        '.react-flow__edge.category-upscaler .react-flow__edge-path': {
-          stroke: 'rgb(88, 76, 170)',
-        },
-        'li.category-upscaler, .category-upscaler>header, .react-flow__node.selected>.category-upscaler': {
-          borderColor: 'rgb(88, 76, 170)',
-          outlineColor: 'rgb(88, 76, 170)',
-        },
-        '.react-flow__handle.upscaler-handle': {
-          backgroundColor: 'rgb(88, 76, 170)',
-        },
-        // Image filter
-        '.react-flow__edge.category-image_filter .react-flow__edge-path': {
-          stroke: 'rgb(0, 140, 140)',
-        },
-        'li.category-image_filter, .category-image_filter>header, .react-flow__node.selected>.category-image_filter': {
-          borderColor: 'rgb(0, 140, 140)',
-          outlineColor: 'rgb(0, 140, 140)',
-        },
-        '.react-flow__handle.image_filter-handle': {
-          backgroundColor: 'rgb(0, 140, 140)',
-        },
+        ...generateCategoryStyles(),
       },
     },
   },

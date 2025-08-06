@@ -1,4 +1,4 @@
-import { NodeProps, NodeResizeControl } from "@xyflow/react";
+import { NodeProps, useStore, useUpdateNodeInternals } from "@xyflow/react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { CustomNodeType, useFlowStore } from "../stores/useFlowStore";
 import { NodeParams } from "../stores/useNodeStore";
@@ -26,16 +26,23 @@ import config from "../../app.config";
 import { enqueueSnackbar } from 'notistack';
 import { runGraph } from "../utils/runGraph";
 
+const MAX_NODE_WIDTH = 1280;
+const MAX_NODE_HEIGHT = 1280;
+
 const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
+  const nodeRef = useRef<HTMLDivElement>(null);
   const style = node.data.style || {};
   const label = node.data.label || `${node.data.module} ${node.data.action}`;
   const setParam = useFlowStore((state) => state.setParam);
+  const setNodeSize = useFlowStore((state) => state.setNodeSize);
   const setNodeCached = useFlowStore((state) => state.setNodeCached);
   const [helpAnchorEl, setHelpAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [executionTimeAnchorEl, setExecutionTimeAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [memoryAnchorEl, setMemoryAnchorEl] = useState<HTMLButtonElement | null>(null);
   const runningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { sid } = useWebsocketStore();
+  const zoomLevel = useStore((store) => store.transform[2]);
+  const updateNodeInternals = useUpdateNodeInternals();
 
   const handleUpdateStore = useCallback((param: string, value: any, key?: keyof NodeParams) => {
     setParam(node.id, param, value, key);
@@ -76,8 +83,31 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
     };
   }, []);
 
+  const onResizeStart = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const initialWidth = nodeRef.current?.clientWidth || node.width || 0;
+    const initialHeight = nodeRef.current?.clientHeight || node.height || 0;
+    const startX = event.clientX;
+    const startY = event.clientY;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const newWidth = Math.min(MAX_NODE_WIDTH, initialWidth + Math.round((moveEvent.clientX - startX) / zoomLevel));
+      const newHeight = Math.min(MAX_NODE_HEIGHT, initialHeight + Math.round((moveEvent.clientY - startY) / zoomLevel));
+      setNodeSize(node.id, newWidth, newHeight);
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      updateNodeInternals(node.id);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [node.id, node.width, node.height, setNodeSize, zoomLevel, updateNodeInternals]);
+
   return (
     <Box
+      ref={nodeRef}
       id={node.id}
       className={`${node.data.module}-${node.data.action} category-${node.data.category} module-${node.data.module}`}
       sx={{
@@ -87,8 +117,10 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
         alignItems: "center",
         justifyContent: "space-between",
         width: "100%",
-        minWidth: "100px",
+        minWidth: 160,
+        maxWidth: MAX_NODE_WIDTH,
         minHeight: "100%",
+        maxHeight: MAX_NODE_HEIGHT,
         outlineOffset: "5px",
         outlineWidth: "2px",
         outlineStyle: "solid",
@@ -306,27 +338,36 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
             </Box>
           </Popover>
         </Box>
-      </Box>
-      {/* resize control */}
-      { node.data.resizable && (
-        <NodeResizeControl minWidth={160} maxWidth={1280} maxHeight={1280} style={{ background: "transparent", border: "none" }}>
-          <OpenInFullIcon sx={{
-            cursor: 'se-resize',
+        
+        {/* resize control */}
+        { node.data.resizable && (
+          <Box className="nodrag" sx={{
             position: 'absolute',
-            bottom: '1px',
-            right: '1px',
             width: '24px',
             height: '24px',
-            zIndex: 1000,
-            transform: 'rotate(90deg)',
-            opacity: 0,
-            color: 'primary.main',
-            '&:hover': {
-              opacity: 1,
-            },
-          }}/>
-        </NodeResizeControl>
+            bottom: 0,
+            right: 0,
+            lineHeight: 0,
+            zIndex: 9999,
+          }}
+          onMouseDown={onResizeStart}
+          >
+            <OpenInFullIcon sx={{
+              cursor: 'se-resize',
+              width: '100%',
+              height: '100%',
+              color: 'secondary.light',
+              display: 'block',
+              backgroundColor: 'secondary.dark',
+              transform: 'rotate(90deg)',
+              '&:hover': {
+                color: 'text.primary',
+                bgcolor: 'secondary.light',
+              },
+            }}/>
+          </Box>
       )}
+      </Box>
     </Box>
   );
 }, (prev, next) => {
@@ -380,4 +421,3 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
 });
 
 export default CustomNode;
-

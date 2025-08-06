@@ -9,11 +9,21 @@ const baseConfig: UserConfig = {
     emptyOutDir: true,
     modulePreload: false,
     target: 'esnext',
+    //minify: 'terser',
     chunkSizeWarningLimit: 2000,
     commonjsOptions: {
       strictRequires: 'auto',
     },
     rollupOptions: {
+      treeshake: {
+        preset: "recommended",
+        //moduleSideEffects: false,
+        //propertyReadSideEffects: false,
+        //unknownGlobalSideEffects: false,
+        //annotations: true,
+        //tryCatchDeoptimization: false,
+        //correctVarValueBeforeDeclaration: true,
+      },
       output: {
         chunkFileNames: (chunkInfo) => {
           const customFieldPath = path.resolve(__dirname, 'src/custom-fields');

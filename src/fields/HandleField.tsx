@@ -1,14 +1,16 @@
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Position, useUpdateNodeInternals } from "@xyflow/react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { FieldProps } from "../components/NodeContent";
 import { useEffect } from "react";
 import fieldAction from "../utils/fieldAction";
 
+
 export default function HandleField(props: FieldProps) {
     const type = props.fieldType === 'output' ? 'source' : 'target';
     const position = props.fieldType === 'output' ? Position.Right : Position.Left;
     const textAlign = props.fieldType === 'output' ? 'right' : 'left';
+    const updateNodeInternals = useUpdateNodeInternals();
 
     useEffect(() => {
         if (!props.onChange) {
@@ -16,6 +18,7 @@ export default function HandleField(props: FieldProps) {
         }
 
         fieldAction(props, (props.isConnected || false).toString());
+        updateNodeInternals(props.nodeId);
     }, [props.isConnected]);
 
     return (
