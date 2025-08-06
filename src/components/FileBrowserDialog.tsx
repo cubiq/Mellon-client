@@ -24,6 +24,9 @@ import config from '../../app.config';
 import Box from '@mui/material/Box';
 import SearchIcon from '@mui/icons-material/Search';
 
+import { useFlowStore } from '../stores/useFlowStore';
+import { fileBrowserParams } from '../stores/useSettingsStore';
+
 export interface FileItem {
     is_dir: boolean;
     is_hidden: boolean;
@@ -98,11 +101,14 @@ function FileBrowserDialog({
     onSelect,
     multiple = false
 }: {
-    opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string, updateStore?: (fieldKey: string, value: any) => void } | null,
+    opener: fileBrowserParams | null,
     onClose: () => void,
     onSelect?: (files: string[]) => void,
     multiple?: boolean
 }) {
+    const setParam = useFlowStore(state => state.setParam);
+    console.log('FileBrowserDialog opened with opener:', opener);
+
     const [currentPath, setCurrentPath] = useState<string>('.');
     const [directoryListing, setDirectoryListing] = useState<DirectoryListing | null>(null);
     const [selectedFiles, setSelectedFiles] = useState<FileItem[]>([]);
@@ -110,10 +116,12 @@ function FileBrowserDialog({
     const [search, setSearch] = useState<string>('');
     //const [showHiddenFiles, setShowHiddenFiles] = useState<boolean>(false);
 
-    const fetchDirectoryListing = useCallback(async (path: string) => {
+    const fileTypes = opener?.fileTypes.join(',') ?? '';
+
+    const fetchDirectoryListing = useCallback(async (path: string, search: string) => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${config.serverAddress}/listdir?path=${encodeURIComponent(path)}&type=${opener?.fileTypes.join(',') ?? ''}`);
+            const response = await fetch(`${config.serverAddress}/listdir?path=${encodeURIComponent(path)}&type=${fileTypes}`);
             const data = await response.json();
             /* filter out hidden files if showHiddenFiles is false
             if (!showHiddenFiles) {
@@ -134,7 +142,7 @@ function FileBrowserDialog({
         } finally {
             setIsLoading(false);
         }
-    }, [config.serverAddress, search, opener]);
+    }, [config.serverAddress, fileTypes]);
 
     const handleFileClick = useCallback((file: FileItem) => {
         setSelectedFiles(prev => {
@@ -146,12 +154,18 @@ function FileBrowserDialog({
     }, [multiple]);
 
     useEffect(() => {
-        setCurrentPath(opener?.path || '.');
-    }, [opener]);
+        if (opener) {
+            fetchDirectoryListing(currentPath, search);
+        }
+    }, [currentPath, search, fetchDirectoryListing]);
 
     useEffect(() => {
-        fetchDirectoryListing(currentPath);
-    }, [currentPath, fetchDirectoryListing]);
+        setCurrentPath(opener?.path || '.');
+    }, [opener?.path]);
+
+    if (!opener) {
+        return null;
+    }
 
     function formatFileSize(size: number): string {
         if (size === 0) {
@@ -296,12 +310,12 @@ function FileBrowserDialog({
             <DialogActions>
                 <Button onClick={() => { setSelectedFiles([]); onClose(); setCurrentPath('.'); setSearch(''); }}>Cancel</Button>
                 <Button
-                    onClick={() => { 
-                        if (opener?.updateStore) {
-                            opener.updateStore(opener.fieldKey, selectedFiles.map(file => file.path));
+                    onClick={() => {
+                        if (opener) {
+                            setParam(opener.nodeId, opener.fieldKey, selectedFiles.map(file => file.path));
                         }
                         onSelect?.(selectedFiles.map(file => file.path));
-                        setSelectedFiles([]); 
+                        setSelectedFiles([]);
                         onClose();
                         setCurrentPath('.');
                         setSearch('');

@@ -2,6 +2,8 @@ import { FieldProps } from "../components/NodeContent";
 
 import Box from "@mui/material/Box";
 import config from "../../app.config";
+import IconButton from "@mui/material/IconButton";
+import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 
 export default function UIImageField(props: FieldProps) {
   let images = !Array.isArray(props.value) ? [props.value] : props.value;
@@ -18,6 +20,10 @@ export default function UIImageField(props: FieldProps) {
 
     return image;
   });
+
+  const handleOnError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = '/assets/mellon.svg';
+  };
 
   return (
     <Box
@@ -39,16 +45,35 @@ export default function UIImageField(props: FieldProps) {
           sx={{
             height: 'auto',
             maxWidth: `${images.length === 1 ? '100%' : '50%'}`,
+            position: 'relative',
             '& img': {
               width: '100%',
               height: 'auto',
               objectFit: 'contain',
               display: 'block',
-              p: 0.25
+              p: 0.25,
             }
           }}
         >
-          <img src={image} alt={`${props.label} ${index}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <img src={image} alt={`${props.label} ${index}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} className="crisp-image" onError={handleOnError} />
+          <IconButton
+            size='medium'
+            className="nodrag"
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              zIndex: 1000,
+              bgcolor: 'rgba(0, 0, 0, 0.45)',
+              color: 'text.primary',
+              '&:hover': {
+                bgcolor: 'rgba(0, 0, 0, 0.75)',
+                color: 'primary.light',
+              },
+            }}
+          >
+            <ZoomOutMapIcon />
+          </IconButton>
         </Box>
       ))}
     </Box>

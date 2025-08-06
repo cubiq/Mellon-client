@@ -564,10 +564,12 @@ function Workflow() {
         nodes={nodesRegistry}
         inputType={dropHandleRef.current?.dataType ?? undefined}
       />
-      <FileBrowserDialog
-        opener={fileBrowserOpener}
-        onClose={() => { setFileBrowserOpener(null); }}
-      />
+      {fileBrowserOpener && (
+        <FileBrowserDialog
+          opener={fileBrowserOpener}
+          onClose={() => { setFileBrowserOpener(null); }}
+        />
+      )}
       {modelManagerOpener && (
         <ModelManagerDialog
           opener={modelManagerOpener}
@@ -580,10 +582,12 @@ function Workflow() {
           onClose={() => { setSettingsOpener(null); }}
         />
       )}
-      <AlertDialog
-        opener={alertOpener}
-        onClose={() => { setAlertOpener(null); }}
-      />
+      {alertOpener && (
+        <AlertDialog
+          opener={alertOpener}
+          onClose={() => { setAlertOpener(null); }}
+        />
+      )}
     </Box>
   )
 }

@@ -96,6 +96,10 @@ const NodeSearchDialog = ({ anchorPosition, onClose, onSelect, nodes, inputType 
     }
   }, [filteredNodes, selectedIndex, onSelect, handleClose]);
 
+  if (!anchorPosition) {
+    return null;
+  }
+
   return (
     <Popover
       open={Boolean(anchorPosition)}

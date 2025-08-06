@@ -4,6 +4,13 @@ import { persist, createJSONStorage } from "zustand/middleware";
 const LEFT_PANEL_WIDTH_MIN = 240;
 const RIGHT_PANEL_WIDTH_MIN = 320;
 
+export interface fileBrowserParams {
+  nodeId: string;
+  fieldKey: string;
+  fileTypes: string[];
+  path: string;
+}
+
 // values saved to localStorage
 interface SettingsState {
   isLeftPanelOpen: boolean;
@@ -23,7 +30,8 @@ interface SettingsState {
 
 // values not saved to localStorage. TODO: make this a separate store?
 interface SettingsStateVolatile {
-  fileBrowserOpener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string } | null;
+  fileBrowserOpener: fileBrowserParams | null;
+  //modelManagerOpener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string } | null;
   modelManagerOpener: { nodeId: string | null, fieldKey: string | null } | null;
   alertOpener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null;
   settingsOpener: boolean | null;
@@ -44,7 +52,7 @@ interface SettingsActions {
 
   setEdgeType: (type: 'default' | 'smoothstep') => void;
 
-  setFileBrowserOpener: (opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string, updateStore: (fieldKey: string, value: any) => void } | null) => void;
+  setFileBrowserOpener: (opener: fileBrowserParams | null) => void;
   setModelManagerOpener: (opener: { nodeId: string | null, fieldKey: string | null } | null) => void;
   setAlertOpener: (opener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null) => void;
   setSettingsOpener: (opener: boolean | null) => void;
@@ -100,7 +108,7 @@ export const useSettingsStore = create<SettingsState & SettingsStateVolatile & S
 
     setEdgeType: (type: 'default' | 'smoothstep') => set({ edgeType: type }),
 
-    setFileBrowserOpener: (opener: { nodeId: string, fieldKey: string, fileTypes: string[], path: string, updateStore?: (fieldKey: string, value: any) => void } | null) => set({ fileBrowserOpener: opener }),
+    setFileBrowserOpener: (opener: fileBrowserParams | null) => set({ fileBrowserOpener: opener }),
     setModelManagerOpener: (opener: { nodeId: string | null, fieldKey: string | null } | null) => set({ modelManagerOpener: opener }),
     setAlertOpener: (opener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null) => set({ alertOpener: opener }),
     setSettingsOpener: (opener: boolean | null) => set({ settingsOpener: opener }),

@@ -11,7 +11,7 @@ import config from "../../app.config";
 import { useSettingsStore } from "../stores/useSettingsStore";
 
 export default function FileBrowserField(props: FieldProps) {
-    const { setFileBrowserOpener } = useSettingsStore();
+    const setFileBrowserOpener = useSettingsStore(state => state.setFileBrowserOpener);
     const [isDropActive, setIsDropActive] = useState(false);
     const updateNodeInternals = useUpdateNodeInternals();
     const currentPath = props.value?.length > 0 
@@ -69,7 +69,7 @@ export default function FileBrowserField(props: FieldProps) {
             <Button
                 variant="contained"
                 color="secondary"
-                onClick={() => setFileBrowserOpener({ nodeId: props.nodeId, fieldKey: props.fieldKey, fileTypes: props.fieldOptions?.fileTypes, path: currentPath, updateStore: props.updateStore })}
+                onClick={() => setFileBrowserOpener({ nodeId: props.nodeId, fieldKey: props.fieldKey, fileTypes: props.fieldOptions?.fileTypes, path: currentPath })}
                 startIcon={<FolderOpenOutlinedIcon />}
                 className="nodrag"
                 sx={{

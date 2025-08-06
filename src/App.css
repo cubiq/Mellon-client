@@ -9,6 +9,12 @@
   clear: both;
 }
 
+.crisp-image {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
 .mellon-hidden {
   display: none !important;
 }
