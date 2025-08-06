@@ -157,8 +157,31 @@ export const useFlowStore = create<FlowStore>()(
             );
             // is this connection replacing an existing connection?
             const isReplace = edgesToRemove.length > 0;
+            
             if (isReplace) {
-                // remove replaced edges
+                const isSpawn = get().getParam(conn.target, conn.targetHandle!, 'spawn');
+
+                if (isSpawn) {
+                    // It's a replacement on a spawn-related handle.
+                    // Instead of removing the edge and re-adding, which triggers
+                    // the handle deletion in onEdgesChange, we'll just update the existing edge.
+                    const edgeToUpdate = edgesToRemove[0];
+                    const sourceNode = get().nodes.find(n => n.id === conn.source);
+                    const handleType = sourceNode?.data.params?.[conn.sourceHandle || '']?.type || 'default';
+
+                    const updatedEdge = { 
+                        ...edgeToUpdate, 
+                        source: conn.source, 
+                        sourceHandle: conn.sourceHandle,
+                        className: `category-${handleType}`,
+                    };
+                    
+                    set({ edges: get().edges.map(e => e.id === edgeToUpdate.id ? updatedEdge : e) });
+                    get().updateHandleConnectionStatus();
+                    return;
+                }
+
+                // remove replaced edges for non-spawn handles
                 get().removeEdges(edgesToRemove.map(edge => edge.id));
 
                 // Ensure the isConnected is updated for the replaced edges

@@ -31,6 +31,7 @@ import FileBrowserDialog from './FileBrowserDialog';
 import ModelManagerDialog from './ModelManagerDialog';
 import AlertDialog from './AlertDialog';
 import SettingsDialog from './SettingsDialog';
+import LightboxDialog from './LightboxDialog';
 
 const nodeTypes = {
   custom: CustomNode,
@@ -70,6 +71,8 @@ function Workflow() {
     setAlertOpener,
     settingsOpener,
     setSettingsOpener,
+    lightboxOpener,
+    setLightboxOpener,
   } = useSettingsStore();
 
   const { screenToFlowPosition, setNodes, setEdges, setViewport } = useReactFlow();
@@ -580,6 +583,12 @@ function Workflow() {
         <SettingsDialog
           opener={settingsOpener}
           onClose={() => { setSettingsOpener(null); }}
+        />
+      )}
+      {lightboxOpener && (
+        <LightboxDialog
+          opener={lightboxOpener}
+          onClose={() => { setLightboxOpener(null); }}
         />
       )}
       {alertOpener && (

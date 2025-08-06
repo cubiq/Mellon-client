@@ -35,6 +35,7 @@ interface SettingsStateVolatile {
   modelManagerOpener: { nodeId: string | null, fieldKey: string | null } | null;
   alertOpener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null;
   settingsOpener: boolean | null;
+  lightboxOpener: { images: string[], currentIndex: number, dataType: string | null, mimeType: string | null } | null;
   runningState: 'one_shot' | 'auto_queue' | 'loop';
 }
 
@@ -57,6 +58,7 @@ interface SettingsActions {
   setAlertOpener: (opener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null) => void;
   setSettingsOpener: (opener: boolean | null) => void;
   setRunningState: (state: 'one_shot' | 'auto_queue' | 'loop') => void;
+  setLightboxOpener: (opener: { images: string[], currentIndex: number, dataType: string | null, mimeType: string | null } | null) => void;
 
   resetToDefault: () => void;
 }
@@ -78,6 +80,7 @@ const defaultVolatileState: SettingsStateVolatile = {
   modelManagerOpener: null,
   alertOpener: null,
   settingsOpener: null,
+  lightboxOpener: null,
   runningState: 'one_shot',
 };
 
@@ -113,6 +116,7 @@ export const useSettingsStore = create<SettingsState & SettingsStateVolatile & S
     setAlertOpener: (opener: { title: string | null, message: string, confirmText: string | null, cancelText: string | null, onConfirm: () => void, onCancel?: () => void } | null) => set({ alertOpener: opener }),
     setSettingsOpener: (opener: boolean | null) => set({ settingsOpener: opener }),
     setRunningState: (state: 'one_shot' | 'auto_queue' | 'loop') => set({ runningState: state }),
+    setLightboxOpener: (opener: { images: string[], currentIndex: number, dataType: string | null, mimeType: string | null } | null) => set({ lightboxOpener: opener }),
 
     resetToDefault: () => set({...defaultState}),
   }),

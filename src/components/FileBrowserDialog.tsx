@@ -107,7 +107,6 @@ function FileBrowserDialog({
     multiple?: boolean
 }) {
     const setParam = useFlowStore(state => state.setParam);
-    console.log('FileBrowserDialog opened with opener:', opener);
 
     const [currentPath, setCurrentPath] = useState<string>('.');
     const [directoryListing, setDirectoryListing] = useState<DirectoryListing | null>(null);

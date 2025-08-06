@@ -18,7 +18,6 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Button from "@mui/material/Button";
 
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import TimerIcon from '@mui/icons-material/Timer';
 import MemoryIcon from '@mui/icons-material/Memory';
 import CircleIcon from '@mui/icons-material/Circle';
@@ -341,32 +340,29 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
         
         {/* resize control */}
         { node.data.resizable && (
-          <Box className="nodrag" sx={{
-            position: 'absolute',
-            width: '24px',
-            height: '24px',
-            bottom: 0,
-            right: 0,
-            lineHeight: 0,
-            zIndex: 9999,
-          }}
-          onMouseDown={onResizeStart}
-          >
-            <OpenInFullIcon sx={{
+          <Box
+            className="nodrag"
+            sx={{
+              position: 'absolute',
+              width: '26px',
+              height: '26px',
+              bottom: 0,
+              right: 0,
+              lineHeight: 0,
+              zIndex: 9999,
+              border: '4px solid transparent',
+              borderBottomColor: 'rgba(255, 255, 255, 0.3)',
+              borderRightColor: 'rgba(255, 255, 255, 0.3)',
               cursor: 'se-resize',
-              width: '100%',
-              height: '100%',
-              color: 'secondary.light',
-              display: 'block',
-              backgroundColor: 'secondary.dark',
-              transform: 'rotate(90deg)',
               '&:hover': {
-                color: 'text.primary',
-                bgcolor: 'secondary.light',
+                borderBottomColor: 'primary.light',
+                borderRightColor: 'primary.light',
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
               },
-            }}/>
-          </Box>
-      )}
+            }}
+            onMouseDown={onResizeStart}
+          />
+        )}
       </Box>
     </Box>
   );

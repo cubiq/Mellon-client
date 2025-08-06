@@ -1,4 +1,5 @@
 import { FieldProps } from "../components/NodeContent";
+import { useSettingsStore } from "../stores/useSettingsStore";
 
 import Box from "@mui/material/Box";
 import config from "../../app.config";
@@ -6,6 +7,14 @@ import IconButton from "@mui/material/IconButton";
 import ZoomOutMapIcon from '@mui/icons-material/ZoomOutMap';
 
 export default function UIImageField(props: FieldProps) {
+  const { setLightboxOpener } = useSettingsStore();
+
+  const handleImageClick = (index: number) => {
+    if (props.value && Array.isArray(props.value) && props.value.length > 0) {
+      setLightboxOpener({ images: props.value, currentIndex: index, dataType: props.dataType, mimeType: props.fieldOptions?.mimeType || 'image/webp' });
+    }
+  };
+
   let images = !Array.isArray(props.value) ? [props.value] : props.value;
   images = images.filter((image) => image !== '' && image !== null && image !== undefined);
 
@@ -59,6 +68,7 @@ export default function UIImageField(props: FieldProps) {
           <IconButton
             size='medium'
             className="nodrag"
+            onClick={() => handleImageClick(index)}
             sx={{
               position: 'absolute',
               top: 8,
