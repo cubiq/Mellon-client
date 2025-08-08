@@ -46,6 +46,8 @@ export type FieldProps = {
   max?: number;
   step?: number;
   fieldOptions?: Record<string, any>;
+  onSignal?: any;
+  signal?: any;
 }
 
 const NodeContent = ({
@@ -95,6 +97,8 @@ const NodeContent = ({
       step: data.step,
       fieldOptions: data.fieldOptions || {},
       optionsSource: data.optionsSource || {},
+      signal: data.signal,
+      onSignal: data.onSignal,
     };
 
     return { key, props };
@@ -223,7 +227,8 @@ const FieldMemo = memo((props: FieldProps) => {
     prev.hidden === next.hidden &&
     prev.display === next.display &&
     prev.dataType === next.dataType &&
-    prev.isConnected === next.isConnected
+    prev.isConnected === next.isConnected &&
+    deepEqual(prev.signal, next.signal)
   );
 });
 

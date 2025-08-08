@@ -13,9 +13,19 @@ import ListSubheader from "@mui/material/ListSubheader";
 import Chip from "@mui/material/Chip";
 
 export default function SelectField(props: FieldProps) {
-    const fieldValue = props.fieldOptions?.multiple
+    const currValue = props.fieldOptions?.multiple
         ? !Array.isArray(props.value) ? props.value !== undefined && props.value !== null ? [props.value] : [] : props.value
         : props.value;
+
+    const validOptions = Array.isArray(props.options)
+        ? props.options.map(String)
+        : Object.keys(props.options);
+
+    const fieldValue = props.fieldOptions?.multiple
+        ? Array.isArray(currValue)
+            ? currValue.filter((v) => validOptions.includes(String(v)))
+            : []
+        : validOptions.includes(String(currValue)) ? currValue : "";
 
     const selectOptions = (() => {
         if (Array.isArray(props.options)) {
@@ -26,8 +36,8 @@ export default function SelectField(props: FieldProps) {
                         <em>{props.fieldOptions?.placeholder}</em>
                     </MenuItem> : null,
                     ...props.options.map((option: string) => (
-                    <MenuItem key={option} value={option}>
-                        <Checkbox checked={props.value.includes(option)} />
+                    <MenuItem key={option} value={option} sx={{ p: 0, pr: 1.5 }}>
+                        <Checkbox checked={fieldValue.includes(option)} />
                         <ListItemText primary={option} />
                     </MenuItem>
                 ))];
@@ -42,7 +52,7 @@ export default function SelectField(props: FieldProps) {
             return [
                 props.fieldOptions?.placeholder ?
                 <MenuItem key="placeholder" disabled value="">
-                    {props.fieldOptions?.placeholder}
+                    <em>{props.fieldOptions?.placeholder}</em>
                 </MenuItem> : null,
                 ...Object.entries(props.options).map(([k, v]) => (
                 k.startsWith('__') ? 
@@ -139,6 +149,14 @@ export default function SelectField(props: FieldProps) {
                     inputProps={{
                         id: props.nodeId + '-' + props.fieldKey,
                     }}
+                    MenuProps={{
+                        transitionDuration: 0,
+                        PaperProps: {
+                            sx: {
+                                bgcolor: 'secondary.dark',
+                            }
+                        }
+                    }}
                     sx={{
                         flexGrow: 1,
                         borderRadius: 0.5,
@@ -173,6 +191,7 @@ export default function SelectField(props: FieldProps) {
                         },
                         '& .MuiSelect-select': {
                             fontSize: 14,
+                            minWidth: 300,
                             py: 0.5, px: 1,
                             m: 0,
                             '&>.MuiBox-root': {

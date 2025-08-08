@@ -65,6 +65,7 @@ function LightboxDialog({ opener, onClose }: { opener: { images: string[], curre
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexGrow: 1,
+                        minHeight: 0,
                         overflow: 'hidden',
                         position: 'relative',
                         py: 4,
@@ -96,7 +97,7 @@ function LightboxDialog({ opener, onClose }: { opener: { images: string[], curre
                             },
                         }}
                     >
-                        <CloseIcon sx={{ width: 48, height: 48 }} />
+                        <CloseIcon sx={{ width: 42, height: 42 }} />
                     </IconButton>
                 </Box>
                 {images.length > 1 && (
@@ -108,6 +109,8 @@ function LightboxDialog({ opener, onClose }: { opener: { images: string[], curre
                             justifyContent: 'center',
                             width: '100%',
                             height: 128,
+                            flexShrink: 0,
+                            flexGrow: 0,
                             p: 1.5,
                             bgcolor: 'rgba(0, 0, 0, 0.75)',
                             overflowX: 'auto',
@@ -122,6 +125,7 @@ function LightboxDialog({ opener, onClose }: { opener: { images: string[], curre
                                 cursor: 'pointer',
                                 mx: 0.5,
                                 border: '2px solid transparent',
+                                borderRadius: 0.5,
                                 '&.active': {
                                     borderColor: '#000',
                                     outline: '2px solid',

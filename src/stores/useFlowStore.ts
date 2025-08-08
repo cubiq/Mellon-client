@@ -47,6 +47,7 @@ export type FlowStore = {
     replaceNodeParams: (id: string, params: Partial<NodeParams>) => void;
     setAllEdgesType: (edgeType: 'default' | 'smoothstep') => void;
     updateHandleConnectionStatus: () => void;
+    updateSignalValues: (edges: Edge | Edge[]) => void;
     groupNodes: (ids: string[]) => void;
     ungroupNodes: (id: string) => void;
     setViewport: (viewport: Viewport) => void;
@@ -148,6 +149,7 @@ export const useFlowStore = create<FlowStore>()(
             set({ edges: newEdges });
             if (removedEdges.length > 0) {
                 get().updateHandleConnectionStatus();
+                get().updateSignalValues(removedEdges);
             }
         },
         onConnect: (conn: CustomConnection) => {
@@ -162,9 +164,7 @@ export const useFlowStore = create<FlowStore>()(
                 const isSpawn = get().getParam(conn.target, conn.targetHandle!, 'spawn');
 
                 if (isSpawn) {
-                    // It's a replacement on a spawn-related handle.
-                    // Instead of removing the edge and re-adding, which triggers
-                    // the handle deletion in onEdgesChange, we'll just update the existing edge.
+                    // It's a replacement on a spawn handle.
                     const edgeToUpdate = edgesToRemove[0];
                     const sourceNode = get().nodes.find(n => n.id === conn.source);
                     const handleType = sourceNode?.data.params?.[conn.sourceHandle || '']?.type || 'default';
@@ -178,6 +178,7 @@ export const useFlowStore = create<FlowStore>()(
                     
                     set({ edges: get().edges.map(e => e.id === edgeToUpdate.id ? updatedEdge : e) });
                     get().updateHandleConnectionStatus();
+                    get().updateSignalValues(updatedEdge);
                     return;
                 }
 
@@ -235,6 +236,43 @@ export const useFlowStore = create<FlowStore>()(
             // Add the new edge to the current edges
             set({ edges: [...get().edges, newEdge] });
             get().updateHandleConnectionStatus();
+            get().updateSignalValues(newEdge);
+        },
+        updateSignalValues: (edges: Edge | Edge[]) => {
+            if (!edges) {
+                return;
+            }
+
+            const edgesArray = Array.isArray(edges) ? edges : [edges];
+            edgesArray.forEach(edge => {
+                const sourceNode = get().nodes.find(n => n.id === edge.source);
+                const targetNode = get().nodes.find(n => n.id === edge.target);
+                const sourceSignal = sourceNode!.data.params?.[edge.sourceHandle!]?.signal;
+                const targetSignal = targetNode!.data.params?.[edge.targetHandle!]?.signal;
+                const sourceIsConnected = sourceNode!.data.params?.[edge.sourceHandle!]?.isConnected;
+                const targetIsConnected = targetNode!.data.params?.[edge.targetHandle!]?.isConnected;
+
+                if (sourceSignal) {
+                    // if this is not the source of the signal, reset the signal value if the handle is not connected
+                    if (!sourceIsConnected && !sourceSignal.origin) {
+                        get().setParam(edge.source, edge.sourceHandle!, { ...sourceSignal, value: undefined }, 'signal');
+                    }
+
+                    // if the signal direction is output we can update the target if it's not an origin itself
+                    if (sourceIsConnected && sourceSignal.direction === 'output' && !targetSignal?.origin) {
+                        get().setParam(edge.target, edge.targetHandle!, { ...sourceSignal, origin: undefined }, 'signal');
+                    }
+                }
+                if (targetSignal) {
+                    if (!targetIsConnected && !targetSignal.origin) {
+                        get().setParam(edge.target, edge.targetHandle!, { ...targetSignal, value: undefined }, 'signal');
+                    }
+
+                    if (targetIsConnected && targetSignal.direction === 'input' && !sourceSignal?.origin) {
+                        get().setParam(edge.source, edge.sourceHandle!, { ...targetSignal, origin: undefined }, 'signal');
+                    }
+                }
+            });
         },
         updateHandleConnectionStatus: () => {
             const edges = get().edges;

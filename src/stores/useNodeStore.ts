@@ -36,6 +36,8 @@ export type NodeParams = {
     max?: number;
     step?: number;
     onChange?: any;
+    onSignal?: any;
+    signal?: { direction: 'input' | 'output'; origin?: string; value: any; };
     dataSource?: any;
     fieldOptions?: Record<string, any>;
     style?: Record<string, any>;

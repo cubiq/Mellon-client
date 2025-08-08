@@ -134,6 +134,13 @@ const theme = createTheme({
         },
       },
     },
+    MuiList: {
+      styleOverrides: {
+        root: {
+          padding: 0,
+        },
+      },
+    },
     MuiCssBaseline: {
       styleOverrides: {
         '.react-flow__handle': {

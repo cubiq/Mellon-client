@@ -74,14 +74,6 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
     }
   }, [node.id]);
 
-  useEffect(() => {
-    return () => {
-      if (runningTimeoutRef.current) {
-        clearTimeout(runningTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const onResizeStart = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const initialWidth = nodeRef.current?.clientWidth || node.width || 0;
     const initialHeight = nodeRef.current?.clientHeight || node.height || 0;
@@ -103,6 +95,14 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
   }, [node.id, node.width, node.height, setNodeSize, zoomLevel, updateNodeInternals]);
+
+  useEffect(() => {
+    return () => {
+      if (runningTimeoutRef.current) {
+        clearTimeout(runningTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Box
@@ -168,8 +168,8 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
                 },
               },
             }}>
-              <Typography sx={{ fontSize: '16px', fontWeight: 'bold', mb: 0.5 }}>{label}</Typography>
-              <Typography sx={{ fontSize: '14px' }}>{node.data.description || 'No description available'}</Typography>
+              <Typography sx={{ fontSize: '16px', fontWeight: 'bold' }}>{label}</Typography>
+              {node.data.description && (<Typography sx={{ fontSize: '14px', mt: 0.5 }}>{node.data.description}</Typography>)}
               {Object.entries(node.data.params).map(([key, param]) => (
                 param.description ? (
                   <Box key={key} sx={{ mt: 0.5 }}>
@@ -409,6 +409,9 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
       return false;
     }
     if (prevParam.isConnected !== nextParam.isConnected) {
+      return false;
+    }
+    if (!deepEqual(prevParam.signal, nextParam.signal)) {
       return false;
     }
   }

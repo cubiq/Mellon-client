@@ -3,8 +3,7 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { FieldProps } from "../components/NodeContent";
 import { useEffect } from "react";
-import fieldAction from "../utils/fieldAction";
-
+import fieldAction, { relaySignal } from "../utils/fieldAction";
 
 export default function HandleField(props: FieldProps) {
     const type = props.fieldType === 'output' ? 'source' : 'target';
@@ -13,13 +12,21 @@ export default function HandleField(props: FieldProps) {
     const updateNodeInternals = useUpdateNodeInternals();
 
     useEffect(() => {
-        if (!props.onChange) {
-            return;
+        if (props.onChange) {
+            fieldAction(props, (props.isConnected || false).toString());
+            updateNodeInternals(props.nodeId);
+        }
+    }, [props.isConnected]);
+
+    useEffect(() => {
+        if (props.onSignal) {
+            fieldAction(props, props.signal?.value, 'onSignal');
+            updateNodeInternals(props.nodeId);
         }
 
-        fieldAction(props, (props.isConnected || false).toString());
-        updateNodeInternals(props.nodeId);
-    }, [props.isConnected]);
+        relaySignal(props.nodeId, props.fieldKey, props.signal);
+    }, [props.signal]);
+
 
     return (
         <Box
