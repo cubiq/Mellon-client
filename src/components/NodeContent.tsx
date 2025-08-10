@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense } from 'react';
+import { lazy, memo, ReactNode, Suspense } from 'react';
 import { NodeParams } from '../stores/useNodeStore';
 import { deepEqual } from '../utils/deepEqual';
 
@@ -22,6 +22,7 @@ import UITextField from '../fields/UITextField';
 import UIImageField from '../fields/UIImageField';
 import UIButtonField from '../fields/UIButtonField';
 import UILabelFieldField from '../fields/UILabelField';
+import UIGroupField from '../fields/UIGroupField';
 
 export type FieldProps = {
   nodeId: string;
@@ -48,6 +49,7 @@ export type FieldProps = {
   fieldOptions?: Record<string, any>;
   onSignal?: any;
   signal?: any;
+  children?: ReactNode;
 }
 
 const NodeContent = ({
@@ -104,55 +106,91 @@ const NodeContent = ({
     return { key, props };
   });
 
-  if (!groupHandles) {
-    return fields.map(({ key, props }) => <FieldMemo key={key} {...props} />);
+  if (groupHandles) {
+    const inputs = fields.filter(({ props }) => props.fieldType === 'input');
+    const outputs = fields.filter(({ props }) => props.fieldType === 'output');
+    const others = fields.filter(({ props }) => props.fieldType !== 'input' && props.fieldType !== 'output');
+
+    return (
+      <>
+        {inputs.length > 0 && (
+          <Box sx={{
+            position: 'absolute',
+            left: -20,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            backgroundColor: 'secondary.dark',
+            py: 0.5,
+            borderRadius: '3px',
+            '& .MuiTypography-root': {
+              fontSize: '12px',
+            },
+          }}>
+            {inputs.map(({ key, props }) => <FieldMemo key={key} {...props} />)}
+          </Box>
+        )}
+        {outputs.length > 0 && (
+          <Box sx={{
+            position: 'absolute',
+            right: -20,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            backgroundColor: 'secondary.dark',
+            py: 0.5,
+            borderRadius: '3px',
+            '& .MuiTypography-root': {
+              fontSize: '12px',
+            },
+          }}>
+            {outputs.map(({ key, props }) => <FieldMemo key={key} {...props} />)}
+          </Box>
+        )}
+        {others.length > 0 && (
+          <Box>
+            {others.map(({ key, props }) => <FieldMemo key={key} {...props} />)}
+          </Box>
+        )}
+      </>
+    );
   }
 
-  const inputs = fields.filter(({ props }) => props.fieldType === 'input');
-  const outputs = fields.filter(({ props }) => props.fieldType === 'output');
-  const others = fields.filter(({ props }) => props.fieldType !== 'input' && props.fieldType !== 'output');
+  // Search `ui_group` fields and collect their children
+  const groupFields: Record<string, { props: FieldProps; children: { key: string; props: FieldProps }[] }> = {};
+  const groupedFieldKeys = new Set<string>();
 
-  return (
-    <>
-      {inputs.length > 0 && (
-        <Box sx={{
-          position: 'absolute',
-          left: -20,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          backgroundColor: 'secondary.dark',
-          py: 0.5,
-          borderRadius: '3px',
-          '& .MuiTypography-root': {
-            fontSize: '12px',
-          },
-        }}>
-          {inputs.map(({ key, props }) => <FieldMemo key={key} {...props} />)}
-        </Box>
-      )}
-      {outputs.length > 0 && (
-        <Box sx={{
-          position: 'absolute',
-          right: -20,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          backgroundColor: 'secondary.dark',
-          py: 0.5,
-          borderRadius: '3px',
-          '& .MuiTypography-root': {
-            fontSize: '12px',
-          },
-        }}>
-          {outputs.map(({ key, props }) => <FieldMemo key={key} {...props} />)}
-        </Box>
-      )}
-      {others.length > 0 && (
-        <Box>
-          {others.map(({ key, props }) => <FieldMemo key={key} {...props} />)}
-        </Box>
-      )}
-    </>
-  );
+  fields.forEach(({ key, props }) => {
+    if (props.fieldType === 'ui_group' && Array.isArray(props.options)) {
+      groupFields[key] = { props, children: [] };
+      props.options.forEach((option) => {
+        const child = fields.find(field => field.key === option);
+        if (child && !groupedFieldKeys.has(option)) {
+          groupFields[key].children.push(child);
+          groupedFieldKeys.add(option); // Mark as grouped
+        }
+      });
+    }
+  });
+
+  // Build the final ordered list of fields to render
+  const orderedFields = fields
+    .filter(({ key }) => !groupedFieldKeys.has(key)) // Exclude children of groups from the top level
+    .map(({ key, props }) => {
+      if (groupFields[key]) {
+        // This is a group, render it with its children
+        const group = groupFields[key];
+        return (
+          <GroupMemo key={key} {...props}>
+            {group.children.map(({ key: childKey, props: childProps }) => (
+              <FieldMemo key={childKey} {...childProps} />
+            ))}
+          </GroupMemo>
+        );
+      }
+      // This is a regular field
+      return <FieldMemo key={key} {...props} />;
+    });
+
+  return orderedFields;
 };
 
 export default NodeContent;
@@ -167,6 +205,17 @@ const getCustomField = (fieldName: string, module: string) => {
   }
   return customFieldCache[cacheKey];
 };
+
+const GroupMemo = memo((props: FieldProps) => {
+  return <UIGroupField props={props}>{props.children}</UIGroupField>;
+}, (prev, next) => {
+  return (
+    prev.value === next.value &&
+    prev.disabled === next.disabled &&
+    prev.hidden === next.hidden &&
+    prev.children === next.children
+  );
+});
 
 const FieldMemo = memo((props: FieldProps) => {
   if (props.display.startsWith('custom')) {
@@ -215,6 +264,9 @@ const FieldMemo = memo((props: FieldProps) => {
       return <UIButtonField {...props} />;
     case 'ui_label':
       return <UILabelFieldField {...props} />;
+    case 'ui_group':
+      // this should never happen, handled in GroupMemo
+      return null;
     case 'default':
     case 'string':
     default:
