@@ -76,6 +76,7 @@ function NodeList() {
 }
 
 function getIcon(category: string) {
+  if (!category) category = 'default';
   switch (category.toLowerCase()) {
     case 'image':
       return <ImageIcon sx={{ fontSize: 18 }} />;

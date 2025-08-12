@@ -108,7 +108,7 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
     <Box
       ref={nodeRef}
       id={node.id}
-      className={`${node.data.module}-${node.data.action} category-${node.data.category} module-${node.data.module}`}
+      className={`${node.data.module.replace('.', '_')}-${node.data.action} ${node.data.module.replace('.', '_')} category-${node.data.category}`}
       sx={{
         position: "relative",
         display: "flex",

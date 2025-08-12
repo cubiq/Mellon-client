@@ -68,7 +68,7 @@ const NodeContent = ({
     groupHandles?: boolean
   }) => {
   const fields = Object.entries(params).map(([key, data]: [string, NodeParams]) => {
-    const label = data.label || (key.charAt(0).toUpperCase() + key.slice(1));
+    const label = data.label ?? (key.charAt(0).toUpperCase() + key.slice(1));
     const display = (data.isInput ? 'input' : data.display || '');
     const dataType = ((Array.isArray(data.type) && data.type.length > 0 ? data.type[0] : data.type || 'string') as string);
     const fieldType = getFieldType(display, dataType, data.options);

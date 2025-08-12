@@ -28,11 +28,19 @@ export default function ModelSelectField(props: FieldProps) {
         if (!source) return;
 
         const propsDefault = typeof props.default === 'string' ? { source: activeSources[0], value: props.default } : props.default || { source, value: '' };
-        const value = propsDefault.source === source ? propsDefault.value : '';
-        props.updateStore(props.fieldKey, { ...propsValue, value, source: source });
+        const value = propsDefault.source === source ? propsDefault.value : null;
+        props.updateStore(props.fieldKey, { ...propsValue, value, source });
     }
 
     const handleFieldChange = (key: string, value: any) => {
+        if (value === null || value === undefined) {
+            value = null;
+        } else if (typeof value === 'string') {
+            value = value;
+        } else if (typeof value === 'object') {
+            value = value.value;
+        }
+
         props.updateStore(key, { ...propsValue, value });
     }
 
