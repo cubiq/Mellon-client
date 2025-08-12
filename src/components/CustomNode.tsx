@@ -21,6 +21,8 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import TimerIcon from '@mui/icons-material/Timer';
 import MemoryIcon from '@mui/icons-material/Memory';
 import CircleIcon from '@mui/icons-material/Circle';
+
+import ErrorBoundary from './ErrorBoundary';
 import config from "../../app.config";
 import { enqueueSnackbar } from 'notistack';
 import { runGraph } from "../utils/runGraph";
@@ -194,7 +196,9 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
             mb: 1,
           },
       }}>
-        <NodeContent nodeId={node.id} params={node.data.params} updateStore={handleUpdateStore} module={node.data.module || ''} action={node.data.action || ''} />
+        <ErrorBoundary module={node.data.module || ''} action={node.data.action || ''}>
+          <NodeContent nodeId={node.id} params={node.data.params} updateStore={handleUpdateStore} module={node.data.module || ''} action={node.data.action || ''} />
+        </ErrorBoundary>
       </Box>
 
       {/* node footer */}
