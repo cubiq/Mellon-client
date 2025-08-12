@@ -11,7 +11,7 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 export default function UIGroupField({ props, children }: { props: FieldProps; children: ReactNode }) {
     const isCollapseField = !!props.fieldOptions?.collapse;
     const isOpen = !!props.value;
-    const displayLabel = isCollapseField || !!!props.fieldOptions?.noLabel;
+    const displayLabel = isCollapseField || props.label;
 
     return (
         <Box
