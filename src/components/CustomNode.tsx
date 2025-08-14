@@ -118,7 +118,7 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
         alignItems: "center",
         justifyContent: "space-between",
         width: "100%",
-        minWidth: 160,
+        minWidth: 200,
         maxWidth: MAX_NODE_WIDTH,
         minHeight: "100%",
         maxHeight: MAX_NODE_HEIGHT,

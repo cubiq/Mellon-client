@@ -17,6 +17,7 @@ import NumberField from '../fields/NumberField';
 import RangeField from '../fields/RangeField';
 import SplineField from '../fields/SplineField';
 import ModelSelectField from '../fields/ModelSelectField';
+import SelectDialogField from '../fields/SelectDialogField';
 
 import UITextField from '../fields/UITextField';
 import UIImageField from '../fields/UIImageField';
@@ -232,8 +233,8 @@ const FieldMemo = memo((props: FieldProps) => {
     case 'input':
     case 'output':
       return <HandleField {...props} />;
-      case 'number':
-      case 'slider':
+    case 'number':
+    case 'slider':
       return <NumberField {...props} />;
     case 'filebrowser':
       return <FileBrowserField {...props} />;
@@ -256,6 +257,8 @@ const FieldMemo = memo((props: FieldProps) => {
       return <SplineField {...props} />;
     case 'modelselect':
       return <ModelSelectField {...props} />;
+    case 'selectdialog':
+      return <SelectDialogField {...props} />;
     case 'ui_text':
       return <UITextField {...props} />;
     case 'ui_image':

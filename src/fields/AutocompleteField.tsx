@@ -244,15 +244,20 @@ export default function AutocompleteField(props: FieldProps) {
                         },
                         '& .MuiOutlinedInput-notchedOutline': {
                             border: '0!important',
+                            p: 0,
                             '&>legend': {
                                 display: 'none'
                             }
                         },
+                        '& .MuiOutlinedInput-root .MuiAutocomplete-endAdornment': {
+                            right: 0,
+                        },
                         '& .MuiIconButton-root': {
+                            fontSize: 14,
                             width: 14,
                             height: 14,
                             background: 'transparent!important',
-                            ml: 1
+                            ml: 1,
                         },
                         '& .MuiChip-root': {
                             borderRadius: 0.5,

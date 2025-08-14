@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useUpdateNodeInternals } from '@xyflow/react'
 
 import { FieldProps } from "../components/NodeContent";
@@ -6,11 +6,13 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
 import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
-import Button from "@mui/material/Button";
 import config from "../../app.config";
 import { useSettingsStore } from "../stores/useSettingsStore";
+import InputField from "./InputField";
+import { IconButton } from "@mui/material";
 
 export default function FileBrowserField(props: FieldProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const setFileBrowserOpener = useSettingsStore(state => state.setFileBrowserOpener);
     const [isDropActive, setIsDropActive] = useState(false);
     const updateNodeInternals = useUpdateNodeInternals();
@@ -18,36 +20,49 @@ export default function FileBrowserField(props: FieldProps) {
         ? props.value[0].split(/[/\\]/).slice(0, -1).join('/') 
         : '.';
 
+    const displayValue = props.value?.filter((file: string) => file.match(/\.(jpe?g|a?png|webp|gif|bmp|ico|tiff|svg)$/i)) || [];
+    const isTextFieldEditable = props.fieldOptions?.editable !== false;
+
+    async function uploadImageFile(file: File) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', 'images'); // TODO: add more types support
+        try {
+            const response = await fetch(`${config.serverAddress}/file`, {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+
+            if (!data.error) {
+                props.updateStore(props.fieldKey, Array.isArray(data.path) ? data.path : [data.path]);
+            } else {
+                console.error(data.error);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     async function handleFileDrop(e: React.DragEvent<HTMLDivElement>) {
         e.preventDefault();
         e.stopPropagation();
         setIsDropActive(false);
         const files = [...e.dataTransfer.files].filter(file => file.type.startsWith('image/'));
         if (files.length > 0) {
-            const file = files[0];
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('type', 'images'); // TODO: add more types support
-            try {
-                const response = await fetch(`${config.serverAddress}/file`, {
-                    method: 'POST',
-                    body: formData,
-                });
-                const data = await response.json();
+            await uploadImageFile(files[0]);
+        }
+    }
 
-                if (!data.error) {
-                    props.updateStore(props.fieldKey, Array.isArray(data.path) ? data.path : [data.path]);
-                } else {
-                    console.error(data.error);
-                }
-            } catch (error) {
-                console.error(error);
-            }
+    async function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const files = e.target.files;
+        if (files && files.length > 0 && files[0].type.startsWith('image/')) {
+            await uploadImageFile(files[0]);
         }
     }
 
     const handleImageLoad = () => {
-        // Update node internals after the image has loaded and the node has been re-rendered
+        // Update node internals after the image has loaded and the node has re-rendered
         setTimeout(() => {
             updateNodeInternals(props.nodeId);
         }, 0);
@@ -66,25 +81,45 @@ export default function FileBrowserField(props: FieldProps) {
             data-key={props.fieldKey}
             className={`${props.hidden ? 'mellon-hidden' : ''} mellon-field`}
         >
-            <Button
-                variant="contained"
-                color="secondary"
-                onClick={() => setFileBrowserOpener({ nodeId: props.nodeId, fieldKey: props.fieldKey, fileTypes: props.fieldOptions?.fileTypes, path: currentPath })}
-                startIcon={<FolderOpenOutlinedIcon />}
-                className="nodrag"
-                sx={{
-                    whiteSpace: 'nowrap',
-                }}
-            >
-                Select File
-            </Button>
+            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+                { isTextFieldEditable ? (
+                    <InputField
+                        {...props}
+                        value={props.value && props.value.length > 0 ? props.value[0] : ''}
+                        updateStore={(key, value) => props.updateStore(key, [value])}
+                    />
+                ) : (
+                    <Typography variant="body2" sx={{ flexGrow: 1, wordBreak: 'break-all', color: 'text.secondary', bgcolor: 'background.default', px: 1, py: 0.5, borderRadius: 0.5 }}>
+                        {props.value && props.value.length > 0 ? props.value[0] : 'No file selected'}
+                    </Typography>
+                )}
+                <IconButton
+                    size="small"
+                    sx={{ ml: 0.5, flexGrow: 0 }}
+                    title="Open file browser"
+                    onClick={() => setFileBrowserOpener({ nodeId: props.nodeId, fieldKey: props.fieldKey, fileTypes: props.fieldOptions?.fileTypes, path: currentPath })}
+                >
+                    <FolderOpenOutlinedIcon />
+                </IconButton>
+            </Box>
+
+            {/* Hidden file input for OS file dialog */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleFileInputChange}
+            />
 
             {/** File drop area */}
             <Box
+                onClick={() => fileInputRef.current?.click()}
                 onDragOver={(e) => { e.preventDefault(); setIsDropActive(true); }}
                 onDragLeave={(e) => { e.preventDefault(); setIsDropActive(false); }}
                 onDrop={handleFileDrop}
                 sx={{
+                    cursor: 'pointer',
                     width: '100%',
                     height: '100%',
                     border: '1px dashed',
@@ -93,8 +128,8 @@ export default function FileBrowserField(props: FieldProps) {
                     mt: 1,
                     textAlign: 'center',
                     overflow: 'hidden',
-                    borderColor: isDropActive ? 'secondary.light' : 'divider',
-                    backgroundColor: isDropActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                    borderColor: isDropActive ? 'text.secondary' : 'divider',
+                    backgroundColor: isDropActive ? 'success.dark' : 'transparent',
                     '&>img': {
                         display: 'block',
                         margin: '0 auto',
@@ -106,13 +141,19 @@ export default function FileBrowserField(props: FieldProps) {
                     },
                 }}
             >
-                {props.value && props.value.length > 0 ? (
-                    props.value.map((file: string, index: number) => (
-                        <img 
-                            key={index} 
-                            src={`${config.serverAddress}/preview?file=${encodeURIComponent(file)}`} 
-                            alt={file} 
+                {displayValue && displayValue.length > 0 ? (
+                    // show only files ending with an image extension
+                    displayValue.map((file: string, index: number) => (
+                        <img
+                            key={index}
+                            src={`${config.serverAddress}/preview?file=${encodeURIComponent(file)}`}
+                            alt={file}
                             onLoad={handleImageLoad}
+                            onError={e => {
+                                // Use a simple gray placeholder, or replace with your own asset
+                                (e.currentTarget as HTMLImageElement).src =
+                                    "data:image/svg+xml;utf8,<svg width='512' height='512' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='checker' width='32' height='32' patternUnits='userSpaceOnUse'><rect width='32' height='32' fill='%23ffffff11'/><rect x='0' y='0' width='16' height='16' fill='%23ffffff33'/><rect x='16' y='16' width='16' height='16' fill='%23ffffff33'/></pattern></defs><rect width='512' height='512' fill='url(%23checker)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%23FAFAFA' font-family='JetBrains Mono, monospace'>Image not found</text></svg>";
+                            }}
                         />
                     ))
                 ) : (

@@ -120,6 +120,7 @@ export default function SelectField(props: FieldProps) {
                     displayEmpty={!!props.fieldOptions?.placeholder}
                     onChange={handleOnChange}
                     size="small"
+                    autoWidth
                     autoComplete="off"
                     variant="standard"
                     native={!props.fieldOptions?.multiple}

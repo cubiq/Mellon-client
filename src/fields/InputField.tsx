@@ -37,9 +37,11 @@ export default function InputField(props: FieldProps) {
                     outlineStyle: 'solid',
                 }}
             >
-                <Box sx={{ maxWidth: '50%', pointerEvents: 'none', pr: 1 }}>
-                    <Typography sx={{ fontSize: 13, color: 'text.secondary', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }} title={props.label}>{props.label}</Typography>
-                </Box>
+                { props.label && (
+                    <Box sx={{ maxWidth: '50%', pointerEvents: 'none', pr: 1 }}>
+                        <Typography sx={{ fontSize: 13, color: 'text.secondary', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }} title={props.label}>{props.label}</Typography>
+                    </Box>
+                )}
                 <InputBase
                     value={props.value ?? ''}
                     onChange={(e) => props.updateStore(props.fieldKey, e.target.value)}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, memo } from 'react';
+import { useCallback, useEffect, useState, useMemo, memo } from 'react';
 
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -19,10 +19,11 @@ import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
 import CircularProgress from '@mui/material/CircularProgress';
 import OutlinedInput from '@mui/material/OutlinedInput';
-
-import config from '../../app.config';
 import Box from '@mui/material/Box';
 import SearchIcon from '@mui/icons-material/Search';
+
+import config from '../../app.config';
+import { useDebounce } from '../utils/useDebounce';
 
 import { useFlowStore } from '../stores/useFlowStore';
 import { fileBrowserParams } from '../stores/useSettingsStore';
@@ -55,6 +56,15 @@ function formatDate(date: number): string {
     }).format(new Date(date * 1000));
 }
 
+function formatFileSize(size: number): string {
+    if (size === 0) {
+        return '0 B';
+    }
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(size) / Math.log(1024));
+    return `${(size / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
+}
+
 const DirectoryRow = memo(({ file, onPathChange }: { file: FileItem, onPathChange: (path: string) => void }) => (
     <TableRow
         hover
@@ -65,6 +75,7 @@ const DirectoryRow = memo(({ file, onPathChange }: { file: FileItem, onPathChang
             <FolderIcon sx={{ color: 'primary.dark' }} />
         </TableCell>
         <TableCell>{file.name}</TableCell>
+        <TableCell sx={{ textAlign: 'right' }}></TableCell>
         <TableCell sx={{ textAlign: 'right' }}>{formatDate(file.modified)}</TableCell>
     </TableRow>
 ));
@@ -90,8 +101,9 @@ const FileRow = memo(({
                 disableRipple
             />
         </TableCell>
-        <TableCell sx={{ width: 'auto' }}>{file.name}</TableCell>
-        <TableCell sx={{ textAlign: 'right' }}>{formatDate(file.modified)}</TableCell>
+        <TableCell sx={{ wordBreak: 'break-all' }}>{file.name}</TableCell>
+        <TableCell sx={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{file.size ? formatFileSize(file.size) : '-'}</TableCell>
+        <TableCell sx={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{formatDate(file.modified)}</TableCell>
     </TableRow>
 ));
 
@@ -113,35 +125,41 @@ function FileBrowserDialog({
     const [selectedFiles, setSelectedFiles] = useState<FileItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [search, setSearch] = useState<string>('');
+    const debouncedSearch = useDebounce(search, 250);
     //const [showHiddenFiles, setShowHiddenFiles] = useState<boolean>(false);
 
     const fileTypes = opener?.fileTypes.join(',') ?? '';
 
-    const fetchDirectoryListing = useCallback(async (path: string, search: string) => {
+    const fetchDirectoryListing = useCallback(async (path: string) => {
         setIsLoading(true);
         try {
             const response = await fetch(`${config.serverAddress}/listdir?path=${encodeURIComponent(path)}&type=${fileTypes}`);
             const data = await response.json();
-            /* filter out hidden files if showHiddenFiles is false
-            if (!showHiddenFiles) {
-                data.files = data.files.filter((file: FileItem) => !file.is_hidden);
-            }*/
             if (data.error) {
                 console.error('Error fetching directory listing:', data.error);
-                data.files = [];
-                data.path = data.path || '.';
-                data.abs_path = data.abs_path || '.';
+                setDirectoryListing({ files: [], path: path, abs_path: path });
+            } else {
+                setDirectoryListing(data);
             }
-            if (search) {
-                data.files = data.files.filter((file: FileItem) => file.name.toLowerCase().includes(search.toLowerCase()));
-            }
-            setDirectoryListing(data);
         } catch (error) {
             console.error('Error fetching directory listing:', error);
+            setDirectoryListing({ files: [], path: path, abs_path: path });
         } finally {
             setIsLoading(false);
         }
-    }, [config.serverAddress, fileTypes]);
+    }, [fileTypes]);
+
+    const { directories, files } = useMemo(() => {
+        const allFiles = directoryListing?.files || [];
+        const filtered = debouncedSearch
+            ? allFiles.filter(file => file.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+            : allFiles;
+
+        return {
+            directories: filtered.filter(file => file.is_dir).sort((a, b) => a.name.localeCompare(b.name)),
+            files: filtered.filter(file => !file.is_dir).sort((a, b) => a.name.localeCompare(b.name)),
+        };
+    }, [directoryListing, debouncedSearch]);
 
     const handleFileClick = useCallback((file: FileItem) => {
         setSelectedFiles(prev => {
@@ -154,25 +172,18 @@ function FileBrowserDialog({
 
     useEffect(() => {
         if (opener) {
-            fetchDirectoryListing(currentPath, search);
+            fetchDirectoryListing(currentPath);
         }
-    }, [currentPath, search, fetchDirectoryListing]);
+    }, [currentPath, fetchDirectoryListing, opener]);
 
     useEffect(() => {
         setCurrentPath(opener?.path || '.');
-    }, [opener?.path]);
+        setSelectedFiles([]);
+        setSearch('');
+    }, [opener]);
 
     if (!opener) {
         return null;
-    }
-
-    function formatFileSize(size: number): string {
-        if (size === 0) {
-            return '0 B';
-        }
-        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(size) / Math.log(1024));
-        return `${(size / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
     }
 
     return (
@@ -240,15 +251,15 @@ function FileBrowserDialog({
                     }}>
                         <TableHead>
                             <TableRow>
-                                <TableCell padding='checkbox'>
+                                <TableCell padding='checkbox' sx={{ bgcolor: '#151a1cff' }}>
                                     {multiple && (
                                         <Checkbox
                                             disableRipple
-                                            indeterminate={selectedFiles.length > 0 && selectedFiles.length < (directoryListing?.files.length ?? 0)}
-                                            checked={(directoryListing?.files.length ?? 0) > 0 && selectedFiles.length === directoryListing?.files.length}
+                                            indeterminate={selectedFiles.length > 0 && selectedFiles.length < files.length}
+                                            checked={files.length > 0 && selectedFiles.length === files.length}
                                             onChange={(event) => {
                                                 if (event.target.checked) {
-                                                    setSelectedFiles(directoryListing?.files || []);
+                                                    setSelectedFiles(files);
                                                 } else {
                                                     setSelectedFiles([]);
                                                 }
@@ -256,7 +267,7 @@ function FileBrowserDialog({
                                         />
                                     )}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell sx={{ width: '50%', bgcolor: '#151a1cff' }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                                         <Box>Name</Box>
                                         <OutlinedInput
@@ -270,29 +281,26 @@ function FileBrowserDialog({
                                         />
                                     </Box>
                                 </TableCell>
-                                <TableCell sx={{ textAlign: 'right' }}>Modified</TableCell>
+                                <TableCell sx={{ textAlign: 'right', bgcolor: '#151a1cff' }}>Size</TableCell>
+                                <TableCell sx={{ textAlign: 'right', bgcolor: '#151a1cff' }}>Modified</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {directoryListing?.files
-                                .filter(file => file.is_dir)
-                                .map((file) => (
-                                    <DirectoryRow 
-                                        key={file.path}
-                                        file={file}
-                                        onPathChange={(path) => { setCurrentPath(path); setSelectedFiles([]); }}
-                                    />
-                                ))}
-                            {directoryListing?.files
-                                .filter(file => !file.is_dir)
-                                .map((file) => (
-                                    <FileRow
-                                        key={file.path}
-                                        file={file}
-                                        isSelected={selectedFiles.some(f => f.path === file.path)}
-                                        onFileClick={handleFileClick}
-                                    />
-                                ))}
+                            {directories.map((file) => (
+                                <DirectoryRow 
+                                    key={file.path}
+                                    file={file}
+                                    onPathChange={(path) => { setCurrentPath(path); setSelectedFiles([]); setSearch(''); }}
+                                />
+                            ))}
+                            {files.map((file) => (
+                                <FileRow
+                                    key={file.path}
+                                    file={file}
+                                    isSelected={selectedFiles.some(f => f.path === file.path)}
+                                    onFileClick={handleFileClick}
+                                />
+                            ))}
                         </TableBody>
                     </Table>
                 </TableContainer>
@@ -307,17 +315,14 @@ function FileBrowserDialog({
                 </Box>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => { setSelectedFiles([]); onClose(); setCurrentPath('.'); setSearch(''); }}>Cancel</Button>
+                <Button onClick={() => { onClose(); }}>Cancel</Button>
                 <Button
                     onClick={() => {
                         if (opener) {
                             setParam(opener.nodeId, opener.fieldKey, selectedFiles.map(file => file.path));
                         }
                         onSelect?.(selectedFiles.map(file => file.path));
-                        setSelectedFiles([]);
                         onClose();
-                        setCurrentPath('.');
-                        setSearch('');
                     }}
                     disabled={selectedFiles.length === 0}
                     variant="contained"

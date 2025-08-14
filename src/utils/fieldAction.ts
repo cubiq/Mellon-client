@@ -61,24 +61,42 @@ export default async function fieldAction(props: FieldProps, value: any, event: 
             }
         }
     } else if (action === 'show' || action === 'hide') {
-        Object.entries(data).forEach(([key, fields]: [string, any]) => {
-            if (!Array.isArray(fields)) {
-                fields = [fields];
+        // This logic should be outside the loop as it should only be evaluated once.
+        let valuesToCheck = value;
+        
+        // handle special case when a node is created with the input already connected
+        if (event === 'onChange' && props.fieldType === 'input' && props.isConnected && onEvent.condition && onEvent.condition["type"] !== getSourceHandleType()) {
+            valuesToCheck = valuesToCheck === 'true' ? 'false' : 'true';
+        }
+
+        valuesToCheck = Array.isArray(valuesToCheck) ? valuesToCheck : [valuesToCheck];
+
+        const fieldVisibilityMap: Map<string, Set<string>> = new Map();
+
+        for (const [key, fieldsData] of Object.entries(data)) {
+            const fields = Array.isArray(fieldsData) ? fieldsData : [fieldsData];
+
+            for (const field of fields) {
+                if (!fieldVisibilityMap.has(field)) {
+                    fieldVisibilityMap.set(field, new Set());
+                }
+
+                const requests = fieldVisibilityMap.get(field)!;
+                if (valuesToCheck.includes(key)) {
+                    if (action === 'show') {
+                        requests.add(props.fieldKey);
+                    } else { // action === 'hide'
+                        requests.delete(props.fieldKey);
+                    }
+                }
             }
+        }
 
-            // special case for input fields, if a node is created with the handle already connected
-            if (event === 'onChange' && props.fieldType === 'input' && props.isConnected && onEvent.condition && onEvent.condition["type"] !== getSourceHandleType()) {
-                value = value === 'true' ? 'false' : 'true';
-            }
-
-            value = !Array.isArray(value) ? [value] : value;
-            const isHidden = action === 'show' ? !value.includes(key) : value.includes(key);
-
-            //const isHidden = action === 'show' ? key !== value : key === value;
-            fields.forEach((field: string) => {
-                props.updateStore(field, isHidden, 'hidden');
-            });
-        });
+        // Now update visibility based on aggregate requests
+        for (const [field, requests] of fieldVisibilityMap.entries()) {
+            const shouldShow = requests.size > 0;
+            props.updateStore(field, !shouldShow, 'hidden');
+        }
     } else if (action === 'create') {
         const node = flowState.nodes.find(n => n.id === props.nodeId);
         const defaultDef = useNodesStore.getState().nodesRegistry[`${props.module}.${props.action}`];
