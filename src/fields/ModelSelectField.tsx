@@ -117,11 +117,11 @@ export default function ModelSelectField(props: FieldProps) {
 
     useEffect(() => {
         getHubOptions();
-    }, [hfCache]);
+    }, [hfCache, props.fieldOptions?.filter?.hub]);
 
     useEffect(() => {
         getLocalOptions();
-    }, [localModels]);
+    }, [localModels, props.fieldOptions?.filter?.local]);
 
     useEffect(() => {
         if (typeof props.default === 'string') {

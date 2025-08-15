@@ -18,6 +18,14 @@ export default async function fieldAction(props: FieldProps, value: any, event: 
         return;
     }
 
+    if (Array.isArray(onEvent)) {
+        onEvent.forEach(evnt => {
+            const newProps = { ...props, [event]: evnt };
+            fieldAction(newProps, value, event);
+        });
+        return;
+    }
+
     let action = 'show';
     let data = onEvent || {};
     const targetField = onEvent.target;
@@ -122,11 +130,16 @@ export default async function fieldAction(props: FieldProps, value: any, event: 
         const propKey = onEvent.prop || 'value';
         value = data ? data[value ?? ''] : value ?? '';
 
-        if (!['value', 'hidden', 'disabled', 'options'].includes(propKey)) {
+        if (!['value', 'hidden', 'disabled', 'options', 'fieldOptions', 'display'].includes(propKey)) {
             return;
         }
 
-        props.updateStore(targetField, value, propKey);
+        if (propKey === 'fieldOptions' && typeof value === 'object') {
+            const currentFieldOptions = flowState.getParam(props.nodeId, props.fieldKey, 'fieldOptions') || {};
+            props.updateStore(targetField, { ...currentFieldOptions, ...value }, propKey);
+        } else {
+            props.updateStore(targetField, value, propKey);
+        }
 
         if (propKey === 'options') {
             props.updateStore(targetField, true, 'disabled');
@@ -135,11 +148,11 @@ export default async function fieldAction(props: FieldProps, value: any, event: 
             const validOptions = value ? Array.isArray(value) ? value.map(String) : Object.keys(value) : [];
             const filterValue = normTargetValue.filter((opt) => validOptions.includes(String(opt)));
 
-            setTimeout(() => {
+            queueMicrotask(() => {
                 props.updateStore(targetField, filterValue, 'value');
                 // force a refresh by triggering the disabled state
                 props.updateStore(targetField, false, 'disabled');
-            }, 0);
+            });
         }
     } else if (action === 'signal') {
         // check if the target field is an input or output field

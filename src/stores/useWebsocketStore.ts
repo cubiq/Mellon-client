@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid'
 import config from '../../app.config';
 
 import { useFlowStore } from './useFlowStore';
-import { useNodesStore } from './useNodeStore';
+import { NodeParams, useNodesStore } from './useNodeStore';
 import { useTaskStore } from './useTaskStore';
 import { useSettingsStore } from './useSettingsStore';
 import { runGraph } from '../utils/runGraph';
@@ -264,6 +264,37 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                     Object.keys(values).forEach((key) => {
                         useFlowStore.getState().setParam(message.node, key, values[key], 'value');
                     });
+                    break;
+                case 'set_field_params':
+                    if (!message.node || !message.field || !message.params) {
+                        console.error('Invalid websocket message: set_field_params without node, field or params');
+                        return;
+                    }
+                    const params = message.params as Record<string, any>;
+                    //const forceRefresh = !Object.keys(params).some(key => ['value', 'hidden', 'disabled', 'display'].includes(key));
+
+                    useFlowStore.getState().setParam(message.node, message.field, true, 'disabled');
+                    Object.keys(params).forEach((key) => {
+                        const currValue = useFlowStore.getState().getParam(message.node, message.field, key as keyof NodeParams);
+                        const newValue = params[key];
+                        const updatedValue = (() => {
+                            if (currValue === undefined || currValue === null) {
+                                return newValue;
+                            }
+
+                            if (typeof currValue === 'object' && typeof newValue === 'object') {
+                                return { ...currValue, ...newValue };
+                            }
+
+                            return newValue;
+                        })();
+
+                        useFlowStore.getState().setParam(message.node, message.field, updatedValue, key as keyof NodeParams);
+                    });
+                    queueMicrotask(() => {
+                        useFlowStore.getState().setParam(message.node, message.field, false, 'disabled');
+                    });
+
                     break;
                 case 'hf_cache_update':
                     useNodesStore.getState().fetchHfCache();

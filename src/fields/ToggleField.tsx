@@ -10,17 +10,6 @@ import Typography from "@mui/material/Typography";
 export default function ToggleField(props: FieldProps) {
     const Component = props.fieldType === 'checkbox' ? Checkbox : Switch;
 
-    const handleOnChange = (e: ChangeEvent<HTMLInputElement>, key?: string) => {
-        if (options) {
-            const newValue = e.target.checked ? [...props.value, key] : props.value.filter((k: string) => k !== key);
-            props.updateStore(props.fieldKey, newValue);
-            fieldAction(props, newValue);
-        } else {
-            props.updateStore(props.fieldKey, e.target.checked);
-            fieldAction(props, e.target.checked.toString());
-        }
-    }
-
     const options = !Array.isArray(props.options) && typeof props.options === 'object' ? Object.entries(props.options).map(([key, value]) => (
         <FormControlLabel
             key={key}
@@ -53,6 +42,17 @@ export default function ToggleField(props: FieldProps) {
             label={value}
         />
     )) : null;
+
+    const handleOnChange = (e: ChangeEvent<HTMLInputElement>, key?: string) => {
+        if (options) {
+            const newValue = e.target.checked ? [...props.value, key] : props.value.filter((k: string) => k !== key);
+            props.updateStore(props.fieldKey, newValue);
+            fieldAction(props, newValue);
+        } else {
+            props.updateStore(props.fieldKey, e.target.checked);
+            fieldAction(props, e.target.checked.toString());
+        }
+    }
 
     useEffect(() => {
         if (options) {
