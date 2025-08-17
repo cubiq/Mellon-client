@@ -15,7 +15,7 @@
     "@fontsource/jetbrains-mono": "^5.2.6",
     "@mui/icons-material": "^7.3.1",
     "@mui/material": "^7.3.1",
-    "@xyflow/react": "^12.8.2",
+    "@xyflow/react": "^12.8.3",
     "notistack": "^3.0.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
-    "@types/node": "^24.2.1",
+    "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",

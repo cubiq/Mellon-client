@@ -24,6 +24,7 @@ import UIImageField from '../fields/UIImageField';
 import UIButtonField from '../fields/UIButtonField';
 import UILabelFieldField from '../fields/UILabelField';
 import UIGroupField from '../fields/UIGroupField';
+import UIImagecompareField from '../fields/UIImagecompareField';
 
 export type FieldProps = {
   nodeId: string;
@@ -265,6 +266,8 @@ const FieldMemo = memo((props: FieldProps) => {
       return <UIImageField {...props} />;
     case 'ui_button':
       return <UIButtonField {...props} />;
+    case 'ui_imagecompare':
+      return <UIImagecompareField {...props} />;
     case 'ui_label':
       return <UILabelFieldField {...props} />;
     case 'ui_group':
