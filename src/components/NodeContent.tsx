@@ -258,11 +258,11 @@ const FieldMemo = memo((props: FieldProps) => {
     case 'spline':
       return <SplineField {...props} />;
     case 'modelselect':
-      return <ModelSelectField {...props} />;       
+      return <ModelSelectField {...props} />;
     case 'layerconfig':
-      return <LayerConfigField {...props} />;         
+      return <LayerConfigField {...props} />;
     case 'selectdialog':
-      return <SelectDialogField {...props} />; 
+      return <SelectDialogField {...props} />;
     case 'ui_text':
       return <UITextField {...props} />;
     case 'ui_image':
