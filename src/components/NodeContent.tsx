@@ -17,6 +17,7 @@ import NumberField from '../fields/NumberField';
 import RangeField from '../fields/RangeField';
 import SplineField from '../fields/SplineField';
 import ModelSelectField from '../fields/ModelSelectField';
+import LayerConfigField from '../fields/LayerConfigField';
 import SelectDialogField from '../fields/SelectDialogField';
 
 import UITextField from '../fields/UITextField';
@@ -257,9 +258,11 @@ const FieldMemo = memo((props: FieldProps) => {
     case 'spline':
       return <SplineField {...props} />;
     case 'modelselect':
-      return <ModelSelectField {...props} />;
+      return <ModelSelectField {...props} />;       
+    case 'layerconfig':
+      return <LayerConfigField {...props} />;         
     case 'selectdialog':
-      return <SelectDialogField {...props} />;
+      return <SelectDialogField {...props} />; 
     case 'ui_text':
       return <UITextField {...props} />;
     case 'ui_image':
