@@ -242,6 +242,7 @@ export const useFlowStore = create<FlowStore>()(
             if (!edges) {
                 return;
             }
+            console.log('Updating signal values for edges', edges);
 
             const edgesArray = Array.isArray(edges) ? edges : [edges];
             edgesArray.forEach(edge => {
@@ -251,6 +252,13 @@ export const useFlowStore = create<FlowStore>()(
                 const targetSignal = targetNode!.data.params?.[edge.targetHandle!]?.signal;
                 const sourceIsConnected = sourceNode!.data.params?.[edge.sourceHandle!]?.isConnected;
                 const targetIsConnected = targetNode!.data.params?.[edge.targetHandle!]?.isConnected;
+                const sourceIsDisabled = sourceNode!.data.params?.[edge.sourceHandle!]?.disabled || false;
+                const targetIsDisabled = targetNode!.data.params?.[edge.targetHandle!]?.disabled || false;
+
+                // if either the source or target handle is disabled, do nothing
+                if (sourceIsDisabled || targetIsDisabled) {
+                    return;
+                }
 
                 if (sourceSignal) {
                     // if this is not the source of the signal, reset the signal value if the handle is not connected

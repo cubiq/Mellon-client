@@ -76,7 +76,8 @@ function LightboxDialog({ opener, onClose }: { opener: { images: string[], curre
                             maxHeight: '100%',
                             width: 'auto',
                             objectFit: 'contain',
-                            border: '16px solid rgba(0, 0, 0, 0.75)',
+                            border: '16px solid rgba(5, 5, 5, 1)',
+                            background: 'repeating-conic-gradient(#999 0 25%, #6a6a6a 0 50%) 50% / 20px 20px'
                         },
                     }}
                 >
