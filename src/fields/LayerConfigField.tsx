@@ -7,9 +7,10 @@ import TextField from "@mui/material/TextField";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Tooltip from "@mui/material/Tooltip";
+import { useCallback } from "react";
 
 export default function LayerConfigField(props: FieldProps) {  
-    const handleSliderChange = (_event: Event, newValue: number | number[]) => {
+    const handleSliderChange = useCallback((_event: Event, newValue: number | number[]) => {
         const value = Array.isArray(newValue) ? newValue[0] : newValue;
         const actualValue = Math.min(1.0, Math.max(0.01, value / 100));
         
@@ -19,7 +20,7 @@ export default function LayerConfigField(props: FieldProps) {
             dropout: Number(actualValue.toFixed(2))
         };
         props.updateStore(props.fieldKey, updatedValue);
-    };
+    }, [props.value, props.fieldKey, props.updateStore]);
 
     const handleIndicesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const updatedValue = {
@@ -68,11 +69,10 @@ export default function LayerConfigField(props: FieldProps) {
                 className={'nodrag'}
                 sx={{
                     width: '100%',
-                    px: 0.5,
+                    px: 1.0,
                     py: 0.5,
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                    padding: '3px 10px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: 0.5,
                 }}
             >
                 {/* Label */}
@@ -87,9 +87,8 @@ export default function LayerConfigField(props: FieldProps) {
                     <Typography
                         variant="caption"
                         sx={{
-                            fontSize: '0.75rem',
                             color: 'text.primary',
-                            flex: 1
+                            flex: 1,
                         }}
                     >
                         {props.label}
@@ -118,7 +117,6 @@ export default function LayerConfigField(props: FieldProps) {
                         <Typography
                             variant="caption"
                             sx={{
-                                fontSize: '0.75rem',
                                 color: 'text.secondary',                            
                             }}
                         >
@@ -134,7 +132,6 @@ export default function LayerConfigField(props: FieldProps) {
                     sx={{
                         width: '100%',
                         alignItems: 'center',
-                        paddingBottom: "2px"
                     }}
                 >
                     <Tooltip title="Layer Indices" arrow>
