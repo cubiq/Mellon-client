@@ -721,6 +721,14 @@ export const useFlowStore = create<FlowStore>()(
                     get().updateProgress(node.id, 0);
                 }
             });
+
+            const currentNodes = get().nodes;
+            const currentEdges = get().edges;
+            const currentViewport = get().viewport;
+            set({ nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 }, lastExecutionTime: 0 });
+            queueMicrotask(() => {
+                set({ nodes: currentNodes, edges: currentEdges, viewport: currentViewport });
+            });
         },
         toObject: () => {
             return {
