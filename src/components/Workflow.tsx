@@ -565,7 +565,8 @@ function Workflow() {
         }}
         onSelect={handleNodeSearchSelect}
         nodes={nodesRegistry}
-        inputType={dropHandleRef.current?.dataType ?? undefined}
+        dataType={dropHandleRef.current?.dataType ?? undefined}
+        handleType={dropHandleRef.current?.handleType}
       />
       {fileBrowserOpener && (
         <FileBrowserDialog

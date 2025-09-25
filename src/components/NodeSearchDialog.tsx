@@ -15,10 +15,11 @@ interface NodeSearchDialogProps {
   onClose: () => void;
   onSelect: (nodeKey: string, node: NodeData) => void;
   nodes: Record<string, NodeData>;
-  inputType?: string | string[];
+  dataType?: string | string[];
+  handleType?: 'source' | 'target' | null | undefined;
 }
 
-const NodeSearchDialog = ({ anchorPosition, onClose, onSelect, nodes, inputType }: NodeSearchDialogProps) => {
+const NodeSearchDialog = ({ anchorPosition, onClose, onSelect, nodes, dataType, handleType }: NodeSearchDialogProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -35,17 +36,22 @@ const NodeSearchDialog = ({ anchorPosition, onClose, onSelect, nodes, inputType 
     }
   }, [anchorPosition]);
 
-  // Memoize the input type filtering
-  const inputTypeFilteredNodes = useMemo(() => {
-    if (!inputType) {
+  // Memoize the data type filtering
+  const dataTypeFilteredNodes = useMemo(() => {
+    if (!dataType) {
       return Object.entries(nodes);
     }
 
+    const dataTypes = Array.isArray(dataType) ? dataType : [dataType];
+
     return Object.entries(nodes).filter(([_, node]) => {
-      // Check if any param has display "input" and matches the inputType
+      // Check if any param has display "input" and matches the dataType
       return Object.values(node.params).some(param => {
-        // Check if param has display "input"
-        if (param.display !== 'input') {
+        if (handleType === 'source' && param.display !== 'input') {
+          return false;
+        }
+
+        if (handleType === 'target' && param.display !== 'output') {
           return false;
         }
 
@@ -53,14 +59,14 @@ const NodeSearchDialog = ({ anchorPosition, onClose, onSelect, nodes, inputType 
         const paramType = param.type || 'default';
         const paramTypes = Array.isArray(paramType) ? paramType : [paramType];
 
-        // Check if any of the param types match inputType or is "any"
-        return paramTypes.some(type => type === inputType || type === 'any');
+        // Check if any of the param types match dataType or is "any"
+        return paramTypes.includes('any') || dataTypes.includes('any') || paramTypes.some(type => dataTypes.includes(type));
       });
     });
-  }, [nodes, inputType]);
+  }, [nodes, dataType, handleType]);
 
   // Apply search query filter directly to the memoized results
-  const filteredNodes = inputTypeFilteredNodes.filter(([_, node]) =>
+  const filteredNodes = dataTypeFilteredNodes.filter(([_, node]) =>
     node.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (node.description ?? '').toLowerCase().includes(searchQuery.toLowerCase())
   );
