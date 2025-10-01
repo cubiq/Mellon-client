@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FieldProps } from "../components/NodeContent";
 import { useStore } from '@xyflow/react';
 import Box from "@mui/material/Box";
@@ -7,6 +7,7 @@ import Typography from "@mui/material/Typography";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import Popper from "@mui/material/Popper";
+import fieldAction from "../utils/fieldAction";
 
 function getOptionKey(option: any, key?: string) {
     if (typeof option === 'string') {
@@ -175,9 +176,20 @@ export default function AutocompleteField(props: FieldProps) {
         props.updateStore(props.fieldKey, parseReturnedValue(value));
     }
 
+    const handleOnInputChange = (_: React.SyntheticEvent, value: string) => {
+        if (freeSolo && !multiple) {
+            props.updateStore(props.fieldKey, value);
+        }
+        fieldAction(props, value);
+    }
+
     function findOptionById(id: string) {
         return fieldOptions.find(option => option.id === id);
     }
+
+    useEffect(() => {
+        fieldAction(props, props.value);
+    }, []);
 
     return (
         <Box
@@ -226,7 +238,7 @@ export default function AutocompleteField(props: FieldProps) {
                     getOptionLabel={(option) => option.label ?? option}
                     getOptionKey={(option) => option.id ?? option}
                     onChange={handleOnChange}
-                    onInputChange={freeSolo && !multiple ? handleOnChange : undefined}
+                    onInputChange={handleOnInputChange}
                     sx={{
                         width: '100%',
                         overflow: 'hidden',
