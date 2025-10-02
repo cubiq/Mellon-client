@@ -9,6 +9,8 @@ export interface fileBrowserParams {
   fieldKey: string;
   fileTypes: string[];
   path: string;
+  multiple?: boolean;
+  initialValues?: string[];
 }
 
 // values saved to localStorage
