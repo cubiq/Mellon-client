@@ -7,7 +7,7 @@ import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton';
 
 import WebAssetIcon from '@mui/icons-material/WebAsset';
-import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
+//import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
 import PolylineRoundedIcon from '@mui/icons-material/PolylineRounded';
 
 import Workflow from './components/Workflow';
@@ -15,6 +15,7 @@ import TopBar from './components/TopBar';
 import NodeList from "./components/NodeList";
 import { useNodesStore } from './stores/useNodeStore';
 import { useWebsocketStore } from './stores/useWebsocketStore.ts';
+import GraphList from './components/GraphList.tsx';
 
 const TAB_BAR_WIDTH = 54;
 const WORKSPACE_MIN_WIDTH = 240
@@ -152,9 +153,9 @@ export default function App() {
               <WebAssetIcon />
             </IconButton>
 
-            <IconButton disableRipple className={leftPanelTabIndex === 1 ? 'active' : ''} onClick={() => handleTabChange(1)}>
+            {/* <IconButton disableRipple className={leftPanelTabIndex === 1 ? 'active' : ''} onClick={() => handleTabChange(1)}>
               <HomeRepairServiceIcon />
-            </IconButton>
+            </IconButton> */}
 
             <IconButton disableRipple className={leftPanelTabIndex === 2 ? 'active' : ''} onClick={() => handleTabChange(2)}>
               <PolylineRoundedIcon />
@@ -175,6 +176,10 @@ export default function App() {
           >
             {leftPanelTabIndex === 0 && (
               <NodeList />
+            )}
+
+            {leftPanelTabIndex === 2 && (
+              <GraphList />
             )}
 
             {/* Resize handle */}

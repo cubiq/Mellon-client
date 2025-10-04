@@ -32,6 +32,7 @@ import ModelManagerDialog from './ModelManagerDialog';
 import AlertDialog from './AlertDialog';
 import SettingsDialog from './SettingsDialog';
 import LightboxDialog from './LightboxDialog';
+import config from '../../app.config';
 
 const nodeTypes = {
   custom: CustomNode,
@@ -442,7 +443,7 @@ function Workflow() {
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
-  const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = useCallback(async (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
 
     // if dropping a json file, import the graph
@@ -471,15 +472,41 @@ function Workflow() {
       return;
     }
 
-    // if dropping a node, add it to the graph
     const data = event.dataTransfer.getData('text/plain');
 
     if (!data) {
-      const err = `No node data found. Reload the page to refresh the node list.`;
-      enqueueSnackbar(err, { variant: 'error', autoHideDuration: err.length * 80 });
       return;
     }
 
+    // if data ends with .json, it's a graph file
+    if (data.endsWith('.json')) {
+      const response = await fetch(`${config.serverAddress}/file?file=${encodeURIComponent(data)}&t=${Date.now()}`);
+      if (!response.ok) {
+        const err = `Error fetching graph file: ${response.statusText}`;
+        enqueueSnackbar(err, { variant: 'error', autoHideDuration: err.length * 80 });
+        return;
+      }
+
+      const graph = await response.json();
+      if (graph.error) {
+        const err = `Error fetching graph file: ${graph.error}`;
+        enqueueSnackbar(err, { variant: 'error', autoHideDuration: err.length * 80 });
+        return;
+      }
+
+      const { nodes, edges, viewport } = graph;
+      const newEdges = edges.map((e: Edge) => ({
+        ...e,
+        type: edgeType
+      }));
+
+      setNodes(nodes);
+      setEdges(newEdges);
+      setViewport(viewport);
+      return;
+    }
+
+    // if dropping a node, add it to the graph
     const node = nodesRegistry[data];
     if (!node) {
       const err = `Node ${data} not found. Reload the page to refresh the node list.`;
