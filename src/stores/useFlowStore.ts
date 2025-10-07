@@ -242,12 +242,13 @@ export const useFlowStore = create<FlowStore>()(
             if (!edges) {
                 return;
             }
-            console.log('Updating signal values for edges', edges);
-
             const edgesArray = Array.isArray(edges) ? edges : [edges];
             edgesArray.forEach(edge => {
                 const sourceNode = get().nodes.find(n => n.id === edge.source);
                 const targetNode = get().nodes.find(n => n.id === edge.target);
+                if (!sourceNode || !targetNode || !('data' in sourceNode) || !('data' in targetNode)) {
+                    return;
+                }
                 const sourceSignal = sourceNode!.data.params?.[edge.sourceHandle!]?.signal;
                 const targetSignal = targetNode!.data.params?.[edge.targetHandle!]?.signal;
                 const sourceIsConnected = sourceNode!.data.params?.[edge.sourceHandle!]?.isConnected;
