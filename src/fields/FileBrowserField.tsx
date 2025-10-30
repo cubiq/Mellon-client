@@ -21,15 +21,30 @@ export default function FileBrowserField(props: FieldProps) {
     ? props.value[0].split(/[/\\]/).slice(0, -1).join('/') 
     : '.';
 
+  const fieldTypes = props.fieldOptions?.fileTypes || ['image'];
+  const allowImages = fieldTypes.includes('image');
+  const allowVideos = fieldTypes.includes('video');
+
+  const getAcceptString = () => {
+    const accepts = [];
+    if (allowImages) accepts.push('image/*');
+    if (allowVideos) accepts.push('video/*');
+    return accepts.join(',');
+  };
+
+  const isImage = (file: string) => file.match(/\.(jpe?g|a?png|webp|gif|bmp|ico|tiff|svg)$/i);
+  const isVideo = (file: string) => file.match(/\.(mp4|webm|ogg)$/i);
+
   // if none of the values is empty, add an empty string to allow adding more files
-  const fieldValue = (props.fieldOptions?.multiple && props.value && !props.value.includes('') ? [...props.value, ''] : props.value) || [''];
-  const displayValue = fieldValue.filter((file: string) => file.match(/\.(jpe?g|a?png|webp|gif|bmp|ico|tiff|svg)$/i)) || [];
+  const fieldValue = (props.fieldOptions?.multiple && allowImages && props.value && !props.value.includes('') ? [...props.value, ''] : props.value) || [''];
+  const displayValue = fieldValue.filter((file: string) => isImage(file) || isVideo(file)) || [];
   const isTextFieldEditable = props.fieldOptions?.editable !== false;
 
-  async function uploadImageFile(file: File) {
+  async function uploadFile(file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('type', 'images'); // TODO: add more types support
+    const fileType = file.type.startsWith('image/') ? 'images' : 'videos';
+    formData.append('type', fileType);
     try {
       const response = await fetch(`${config.serverAddress}/file`, {
         method: 'POST',
@@ -38,11 +53,16 @@ export default function FileBrowserField(props: FieldProps) {
       const data = await response.json();
 
       if (!data.error) {
-        //props.updateStore(props.fieldKey, Array.isArray(data.path) ? data.path : [data.path]);
         const newFiles = Array.isArray(data.path) ? data.path : [data.path];
-        const updatedFiles = props.fieldOptions?.multiple ? 
-          Array.from(new Set([...(props.value || []), ...newFiles])) : 
-          newFiles;
+        let updatedFiles;
+        if (fileType === 'videos') {
+          // Videos are always single
+          updatedFiles = newFiles;
+        } else {
+          updatedFiles = props.fieldOptions?.multiple ? 
+            Array.from(new Set([...(props.value || []).filter((f: string) => f), ...newFiles])) : 
+            newFiles;
+        }
         props.updateStore(props.fieldKey, updatedFiles);
       } else {
         console.error(data.error);
@@ -56,21 +76,40 @@ export default function FileBrowserField(props: FieldProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsDropActive(false);
-    const files = [...e.dataTransfer.files].filter(file => file.type.startsWith('image/'));
+    const files = [...e.dataTransfer.files].filter(file => 
+      (allowImages && file.type.startsWith('image/')) || 
+      (allowVideos && file.type.startsWith('video/'))
+    );
     if (files.length > 0) {
-      await uploadImageFile(files[0]);
+      if (files[0].type.startsWith('video/')) {
+        await uploadFile(files[0]);
+      } else {
+        // Handle multiple image uploads if enabled
+        if (props.fieldOptions?.multiple && allowImages) {
+          //const currentImages = props.value?.filter(isImage) || [];
+          const newImages = files.map(f => f);
+          for (const file of newImages) {
+            await uploadFile(file);
+          }
+        } else {
+          await uploadFile(files[0]);
+        }
+      }
     }
   }
 
   async function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
-    if (files && files.length > 0 && files[0].type.startsWith('image/')) {
-      await uploadImageFile(files[0]);
+    if (files && files.length > 0) {
+      const file = files[0];
+      if ((allowImages && file.type.startsWith('image/')) || (allowVideos && file.type.startsWith('video/'))) {
+        await uploadFile(file);
+      }
     }
   }
 
-  const handleImageLoad = () => {
-    // Update node internals after the image has loaded and the node has re-rendered
+  const handleMediaLoad = () => {
+    // Update node internals after the image/video has loaded and the node has re-rendered
     setTimeout(() => {
       updateNodeInternals(props.nodeId);
     }, 100);
@@ -83,7 +122,7 @@ export default function FileBrowserField(props: FieldProps) {
     } else {
       newValues.push(value);
     }
-    props.updateStore(props.fieldKey, Array.from(new Set(newValues)));
+    props.updateStore(props.fieldKey, Array.from(new Set(newValues.filter(f => f))));
   };
 
   const getGridColumns = (count: number) => {
@@ -93,9 +132,13 @@ export default function FileBrowserField(props: FieldProps) {
     return Math.min(cols, maxCols);
   };
 
-  const removeImage = (fileToRemove: string) => {
+  const removeMedia = (fileToRemove: string) => {
     const newValues = props.value?.filter((file: string) => file !== fileToRemove) || [];
-    props.updateStore(props.fieldKey, newValues);
+    if (newValues.length === 0) {
+      props.updateStore(props.fieldKey, ['']);
+    } else {
+      props.updateStore(props.fieldKey, newValues);
+    }
     queueMicrotask(() => {
       updateNodeInternals(props.nodeId);
     });
@@ -154,9 +197,10 @@ export default function FileBrowserField(props: FieldProps) {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={getAcceptString()}
         style={{ display: 'none' }}
         onChange={handleFileInputChange}
+        multiple={props.fieldOptions?.multiple && allowImages}
       />
 
       {/** File drop area */}
@@ -189,23 +233,49 @@ export default function FileBrowserField(props: FieldProps) {
             height: 'auto',
             objectFit: 'contain',
           },
+          " &>div>video": {
+            display: 'block',
+            margin: '0 auto',
+            maxWidth: '1920px',
+            maxHeight: '1080px',
+            width: '100%',
+            height: 'auto',
+            objectFit: 'contain',
+          }
         }}
       >
         {displayValue && displayValue.length > 0 ? (
           displayValue.map((file: string, index: number) => (
             <Box key={index} sx={{ position: 'relative' }}>
-              <img
-                src={`${config.serverAddress}/preview?file=${encodeURIComponent(file)}`}
-                alt={file}
-                onLoad={handleImageLoad}
-                onError={e => {
-                  (e.currentTarget as HTMLImageElement).src =
-                    "data:image/svg+xml;utf8,<svg width='512' height='512' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='checker' width='32' height='32' patternUnits='userSpaceOnUse'><rect width='32' height='32' fill='%23ffffff11'/><rect x='0' y='0' width='16' height='16' fill='%23ffffff33'/><rect x='16' y='16' width='16' height='16' fill='%23ffffff33'/></pattern></defs><rect width='512' height='512' fill='url(%23checker)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%23FAFAFA' font-family='JetBrains Mono, monospace'>Image not found</text></svg>";
-                }}
-              />
+              {isImage(file) ? (
+                <img
+                  src={`${config.serverAddress}/preview?file=${encodeURIComponent(file)}`}
+                  alt={file}
+                  onLoad={handleMediaLoad}
+                  onError={e => {
+                    (e.currentTarget as HTMLImageElement).src =
+                      "data:image/svg+xml;utf8,<svg width='512' height='512' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='checker' width='32' height='32' patternUnits='userSpaceOnUse'><rect width='32' height='32' fill='%23ffffff11'/><rect x='0' y='0' width='16' height='16' fill='%23ffffff33'/><rect x='16' y='16' width='16' height='16' fill='%23ffffff33'/></pattern></defs><rect width='512' height='512' fill='url(%23checker)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%23FAFAFA' font-family='JetBrains Mono, monospace'>Image not found</text></svg>";
+                  }}
+                />
+              ) : isVideo(file) ? (
+                <video
+                  src={`${config.serverAddress}/stream?file=${encodeURIComponent(file)}`}
+                  //src={`${config.serverAddress}/cache/${props.nodeId}/${props.fieldKey}`}
+                  controls
+                  onClick={e => { e.stopPropagation() }}
+                  onLoadedData={e => {
+                    (e.currentTarget as HTMLVideoElement).poster = '';
+                    handleMediaLoad();
+                  }}
+                  onError={e => {
+                    (e.currentTarget as HTMLVideoElement).poster =
+                      "data:image/svg+xml;utf8,<svg width='512' height='512' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='checker' width='32' height='32' patternUnits='userSpaceOnUse'><rect width='32' height='32' fill='%23ffffff11'/><rect x='0' y='0' width='16' height='16' fill='%23ffffff33'/><rect x='16' y='16' width='16' height='16' fill='%23ffffff33'/></pattern></defs><rect width='512' height='512' fill='url(%23checker)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='24' fill='%23FAFAFA' font-family='JetBrains Mono, monospace'>Video not found</text></svg>";
+                  }}
+                />
+              ) : null}
               <IconButton
                 size="small"
-                onClick={(e) => { e.stopPropagation(); removeImage(file); }}
+                onClick={(e) => { e.stopPropagation(); removeMedia(file); }}
                 title="Remove image"
                 sx={{
                   position: 'absolute',

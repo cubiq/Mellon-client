@@ -26,6 +26,7 @@ import UIButtonField from '../fields/UIButtonField';
 import UILabelFieldField from '../fields/UILabelField';
 import UIGroupField from '../fields/UIGroupField';
 import UIImagecompareField from '../fields/UIImagecompareField';
+import UIVideoField from '../fields/UIVideoField';
 
 export type FieldProps = {
   nodeId: string;
@@ -267,6 +268,8 @@ const FieldMemo = memo((props: FieldProps) => {
       return <UITextField {...props} />;
     case 'ui_image':
       return <UIImageField {...props} />;
+    case 'ui_video':
+      return <UIVideoField {...props} />;
     case 'ui_button':
       return <UIButtonField {...props} />;
     case 'ui_imagecompare':
