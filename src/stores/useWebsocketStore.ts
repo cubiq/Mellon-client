@@ -304,6 +304,24 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                     useNodesStore.getState().fetchLocalModels();
                     console.info('Local cache updated');
                     break;
+                case 'get_signal_value':
+                    if (!message.node || !message.field || !message.request_id || !message.sid) {
+                        console.error('Invalid websocket message: get_signal_value without node, field or request_id');
+                        return;
+                    }
+                    // should never happen, used mostly for development
+                    if (message.sid !== sid) {
+                        console.warn('Websocket sid mismatch for get_signal_value');
+                        return;
+                    }
+                    const signalValue = useFlowStore.getState().getSignalValue(message.node, message.field);
+                    get().send({
+                        type: 'signal_value',
+                        request_id: message.request_id,
+                        value: signalValue,
+                        sid: get().sid
+                    });
+                    break;
                 default:
                     console.warn('Unknown websocket message type', message.type);
                     break;

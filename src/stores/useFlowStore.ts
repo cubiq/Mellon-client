@@ -48,6 +48,7 @@ export type FlowStore = {
     setAllEdgesType: (edgeType: 'default' | 'smoothstep') => void;
     updateHandleConnectionStatus: () => void;
     updateSignalValues: (edges: Edge | Edge[]) => void;
+    getSignalValue: (id: string, param: string) => any;
     groupNodes: (ids: string[]) => void;
     ungroupNodes: (id: string) => void;
     setViewport: (viewport: Viewport) => void;
@@ -282,6 +283,14 @@ export const useFlowStore = create<FlowStore>()(
                     }
                 }
             });
+        },
+        getSignalValue: (id: string, param: string) => {
+            const node = get().nodes.find(n => n.id === id);
+            if (!node) {
+                return undefined;
+            }
+            const signal = node.data.params?.[param]?.signal;
+            return signal ? signal.value : undefined;
         },
         updateHandleConnectionStatus: () => {
             const edges = get().edges;
