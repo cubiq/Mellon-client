@@ -7,6 +7,7 @@ import { NodeParams, useNodesStore } from './useNodeStore';
 import { useTaskStore } from './useTaskStore';
 import { useSettingsStore } from './useSettingsStore';
 import { runGraph } from '../utils/runGraph';
+import { enqueueSnackbar } from 'notistack';
 
 export type WebsocketState ={
     address: string | null;
@@ -321,6 +322,17 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                         value: signalValue,
                         sid: get().sid
                     });
+                    break;
+                case 'notification':
+                    if (!message.message) {
+                        console.error('Invalid websocket message: notification without message');
+                        return;
+                    }
+                    const variant = message.variant || 'default'; // default | error | success | warning | info
+                    const persist = message.persist || false;
+                    const autoHideDuration = !persist ? message.autoHideDuration || Math.max(message.message.length * 80, 3000) : undefined;
+
+                    enqueueSnackbar(message.message, { variant, autoHideDuration, persist });
                     break;
                 default:
                     console.warn('Unknown websocket message type', message.type);
