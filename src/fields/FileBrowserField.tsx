@@ -17,8 +17,8 @@ export default function FileBrowserField(props: FieldProps) {
   const setFileBrowserOpener = useSettingsStore(state => state.setFileBrowserOpener);
   const [isDropActive, setIsDropActive] = useState(false);
   const updateNodeInternals = useUpdateNodeInternals();
-  const currentPath = props.value?.length > 0 
-    ? props.value[0].split(/[/\\]/).slice(0, -1).join('/') 
+  const currentPath = props.value?.length > 0
+    ? props.value[0].split(/[/\\]/).slice(0, -1).join('/')
     : '.';
 
   const fieldTypes = props.fieldOptions?.fileTypes || ['image'];
@@ -32,12 +32,15 @@ export default function FileBrowserField(props: FieldProps) {
     return accepts.join(',');
   };
 
-  const isImage = (file: string) => file.match(/\.(jpe?g|a?png|webp|gif|bmp|ico|tiff|svg)$/i);
-  const isVideo = (file: string) => file.match(/\.(mp4|webm|ogg)$/i);
+  const isUrl = (file: string) => /^https?:\/\//i.test(file);
+  // match extensions even if URL has query/hash (e.g. image.png?token=abc or image.jpg#fragment)
+  const isImage = (file: string) => !!file.match(/\.(jpe?g|a?png|webp|gif|bmp|ico|tiff|svg)(?:[?#].*)?$/i);
+  const isVideo = (file: string) => !!file.match(/\.(mp4|webm|ogg)(?:[?#].*)?$/i);
+  const isUrlImage = (file: string) => isUrl(file) && isImage(file);
 
   // if none of the values is empty, add an empty string to allow adding more files
   const fieldValue = (props.fieldOptions?.multiple && allowImages && props.value && !props.value.includes('') ? [...props.value, ''] : props.value) || [''];
-  const displayValue = fieldValue.filter((file: string) => isImage(file) || isVideo(file)) || [];
+  const displayValue = fieldValue.filter((file: string) => isImage(file) || isVideo(file) || isUrlImage(file)) || [];
   const isTextFieldEditable = props.fieldOptions?.editable !== false;
 
   async function uploadFile(file: File) {
@@ -59,8 +62,8 @@ export default function FileBrowserField(props: FieldProps) {
           // Videos are always single
           updatedFiles = newFiles;
         } else {
-          updatedFiles = props.fieldOptions?.multiple ? 
-            Array.from(new Set([...(props.value || []).filter((f: string) => f), ...newFiles])) : 
+          updatedFiles = props.fieldOptions?.multiple ?
+            Array.from(new Set([...(props.value || []).filter((f: string) => f), ...newFiles])) :
             newFiles;
         }
         props.updateStore(props.fieldKey, updatedFiles);
@@ -76,8 +79,8 @@ export default function FileBrowserField(props: FieldProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsDropActive(false);
-    const files = [...e.dataTransfer.files].filter(file => 
-      (allowImages && file.type.startsWith('image/')) || 
+    const files = [...e.dataTransfer.files].filter(file =>
+      (allowImages && file.type.startsWith('image/')) ||
       (allowVideos && file.type.startsWith('video/'))
     );
     if (files.length > 0) {
@@ -247,9 +250,9 @@ export default function FileBrowserField(props: FieldProps) {
         {displayValue && displayValue.length > 0 ? (
           displayValue.map((file: string, index: number) => (
             <Box key={index} sx={{ position: 'relative' }}>
-              {isImage(file) ? (
+              {(isImage(file) || isUrlImage(file)) ? (
                 <img
-                  src={`${config.serverAddress}/preview?file=${encodeURIComponent(file)}`}
+                  src={isUrl(file) ? file : `${config.serverAddress}/preview?file=${encodeURIComponent(file)}`}
                   alt={file}
                   onLoad={handleMediaLoad}
                   onError={e => {
