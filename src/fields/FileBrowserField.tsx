@@ -33,7 +33,6 @@ export default function FileBrowserField(props: FieldProps) {
   };
 
   const isUrl = (file: string) => /^https?:\/\//i.test(file);
-  // match extensions even if URL has query/hash (e.g. image.png?token=abc or image.jpg#fragment)
   const isImage = (file: string) => !!file.match(/\.(jpe?g|a?png|webp|gif|bmp|ico|tiff|svg)(?:[?#].*)?$/i);
   const isVideo = (file: string) => !!file.match(/\.(mp4|webm|ogg)(?:[?#].*)?$/i);
   const isUrlImage = (file: string) => isUrl(file) && isImage(file);
@@ -162,7 +161,7 @@ export default function FileBrowserField(props: FieldProps) {
     >
       <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 0.5 }}>
-          {isTextFieldEditable ? (
+          { isTextFieldEditable ? (
             fieldValue.map((file: string, index: number) => (
               <InputField
                 key={index}
