@@ -17,8 +17,8 @@ export default function FileBrowserField(props: FieldProps) {
   const setFileBrowserOpener = useSettingsStore(state => state.setFileBrowserOpener);
   const [isDropActive, setIsDropActive] = useState(false);
   const updateNodeInternals = useUpdateNodeInternals();
-  const currentPath = props.value?.length > 0
-    ? props.value[0].split(/[/\\]/).slice(0, -1).join('/')
+  const currentPath = props.value?.length > 0 
+    ? props.value[0].split(/[/\\]/).slice(0, -1).join('/') 
     : '.';
 
   const fieldTypes = props.fieldOptions?.fileTypes || ['image'];
@@ -62,8 +62,8 @@ export default function FileBrowserField(props: FieldProps) {
           // Videos are always single
           updatedFiles = newFiles;
         } else {
-          updatedFiles = props.fieldOptions?.multiple ?
-            Array.from(new Set([...(props.value || []).filter((f: string) => f), ...newFiles])) :
+          updatedFiles = props.fieldOptions?.multiple ? 
+            Array.from(new Set([...(props.value || []).filter((f: string) => f), ...newFiles])) : 
             newFiles;
         }
         props.updateStore(props.fieldKey, updatedFiles);
@@ -79,8 +79,8 @@ export default function FileBrowserField(props: FieldProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsDropActive(false);
-    const files = [...e.dataTransfer.files].filter(file =>
-      (allowImages && file.type.startsWith('image/')) ||
+    const files = [...e.dataTransfer.files].filter(file => 
+      (allowImages && file.type.startsWith('image/')) || 
       (allowVideos && file.type.startsWith('video/'))
     );
     if (files.length > 0) {
@@ -162,7 +162,7 @@ export default function FileBrowserField(props: FieldProps) {
     >
       <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 0.5 }}>
-          { isTextFieldEditable ? (
+          {isTextFieldEditable ? (
             fieldValue.map((file: string, index: number) => (
               <InputField
                 key={index}
