@@ -58,7 +58,7 @@ export default function ToggleField(props: FieldProps) {
         if (options) {
             fieldAction(props, props.value);
         } else {
-            fieldAction(props, props.value.toString());
+            fieldAction(props, props.value?.toString());
         }
     }, []);
 

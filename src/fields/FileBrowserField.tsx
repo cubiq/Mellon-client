@@ -34,6 +34,7 @@ export default function FileBrowserField(props: FieldProps) {
 
   const isImage = (file: string) => file.match(/\.(jpe?g|a?png|webp|gif|bmp|ico|tiff|svg)$/i);
   const isVideo = (file: string) => file.match(/\.(mp4|webm|ogg)$/i);
+  const isUrl = (file: string) => file.startsWith('http://') || file.startsWith('https://');
 
   // if none of the values is empty, add an empty string to allow adding more files
   const fieldValue = (props.fieldOptions?.multiple && allowImages && props.value && !props.value.includes('') ? [...props.value, ''] : props.value) || [''];
@@ -249,7 +250,7 @@ export default function FileBrowserField(props: FieldProps) {
             <Box key={index} sx={{ position: 'relative' }}>
               {isImage(file) ? (
                 <img
-                  src={`${config.serverAddress}/preview?file=${encodeURIComponent(file)}`}
+                  src={isUrl(file) ? file : `${config.serverAddress}/preview?file=${encodeURIComponent(file)}`}
                   alt={file}
                   onLoad={handleMediaLoad}
                   onError={e => {
@@ -259,7 +260,7 @@ export default function FileBrowserField(props: FieldProps) {
                 />
               ) : isVideo(file) ? (
                 <video
-                  src={`${config.serverAddress}/stream?file=${encodeURIComponent(file)}`}
+                  src={isUrl(file) ? file : `${config.serverAddress}/stream?file=${encodeURIComponent(file)}`}
                   //src={`${config.serverAddress}/cache/${props.nodeId}/${props.fieldKey}`}
                   controls
                   onClick={e => { e.stopPropagation() }}
