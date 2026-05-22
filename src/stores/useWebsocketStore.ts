@@ -245,6 +245,17 @@ export const useWebsocketStore = create<WebsocketState>((set, get) => ({
                         }
                     });
                     useFlowStore.getState().replaceNodeParams(node.id, newParams);
+                    const updatedNodes = useFlowStore.getState().nodes.map((n: any) =>
+                        n.id !== node.id ? n : {
+                            ...n,
+                            data: {
+                                ...n.data,
+                                label: message.label || undefined,
+                                headerColor: message.style?.headerColor || undefined,
+                            },
+                        }
+                    );
+                    useFlowStore.setState({ nodes: updatedNodes });
                     break;
                 case 'set_field_visibility':
                     if (!message.node || !message.fields) {

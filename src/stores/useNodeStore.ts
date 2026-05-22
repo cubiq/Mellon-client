@@ -16,6 +16,7 @@ export type NodeData = {
     isCached?: boolean;
     progress?: number;
     minimized?: boolean;
+    headerColor?: string;
 }
 
 export type NodeParams = {
