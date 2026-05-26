@@ -143,9 +143,9 @@ const CustomNode = memo((node: NodeProps<CustomNodeType>) => {
         fontSize: '14px',
         borderTopWidth: '5px',
         borderTopStyle: 'solid',
-        borderTopColor: 'text.secondary',
+        borderTopColor: node.data.headerColor || 'text.secondary',
+        backgroundColor: node.data.headerColor || 'background.default',
         p: 0.5, pl: 1,
-        backgroundColor: 'background.default',
       }}>
         <Box sx={{ flexGrow: 1 }}>
           {label}
